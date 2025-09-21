@@ -1,0 +1,45 @@
+type Query {
+    portfolio(username: String!): Portfolio
+}
+
+type Portfolio {
+    user: User
+    apps: [Project]
+    skillsData: [SkillCategory]
+    publicationsData: [Publication]
+}
+
+type User {
+    fullName: String
+    title: String
+    email: String
+    resumeUrl: String
+    profilePhoto: String
+}
+
+type Project {
+    id: ID!
+    name: String
+    description: String
+    icon: String
+    tags: [String]
+    liveUrl: String
+    githubUrl: String
+}
+
+type Publication {
+    id: ID!
+    title: String
+    description: String
+    url: String
+}
+
+type SkillCategory {
+    category: String
+    items: [Skill]
+}
+
+type Skill {
+    name: String
+    icon: String
+}
