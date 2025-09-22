@@ -32,5 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-### application properties ###
+### development resources ###
 src/main/resources/application-dev.properties
+src/main/resources/data.sql
