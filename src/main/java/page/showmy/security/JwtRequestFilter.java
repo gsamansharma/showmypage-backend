@@ -1,6 +1,7 @@
 package page.showmy.security;
 
-
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,7 +37,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
-            username = jwtUtil.extractUsername(jwt);
+            try {
+                username = jwtUtil.extractUsername(jwt);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid JWT");
+            } catch(ExpiredJwtException e) {
+                System.out.println("Expired JWT"+ e.getMessage());
+            } catch(SignatureException e) {
+                System.out.println("JWT signature does not match locally computed signature"+ e.getMessage());
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
