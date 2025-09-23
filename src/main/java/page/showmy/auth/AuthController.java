@@ -14,6 +14,7 @@ import page.showmy.security.JwtUtil;
 import page.showmy.security.UserDetailsServiceImpl;
 
 import java.security.Principal;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -46,7 +47,7 @@ public class AuthController {
 
         userRepository.save(user);
 
-        return ResponseEntity.ok("User registered successfully!");
+        return ResponseEntity.ok(Map.of("message","User registered successfully!"));
     }
 
     @PostMapping("/login")
@@ -69,8 +70,15 @@ public class AuthController {
     @GetMapping("/validate")
     public ResponseEntity<?> validateUser(Principal principal) {
         if(principal == null) {
-            return ResponseEntity.status(401).body("No active user session");
+            return ResponseEntity.status(401)
+                    .body(Map.of(
+                            "valid",false,
+                            "message","No active user session"));
         }
-        return ResponseEntity.ok("User '"+ principal.getName() +"' is valid");
+        return ResponseEntity.ok(
+                Map.of(
+                        "valid",true,
+                        "username",principal.getName(),
+                        "message","Token is valid"));
     }
 }
