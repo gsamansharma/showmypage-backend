@@ -24,5 +24,9 @@ public class Skill {
 
     @ManyToMany(mappedBy = "skills")
     @JsonIgnore
+    private Set<Project> projects = new HashSet<>();
+
+    @ManyToMany(mappedBy = "skills")
+    @JsonIgnore
     private Set<User> users =  new HashSet<>();
 }
