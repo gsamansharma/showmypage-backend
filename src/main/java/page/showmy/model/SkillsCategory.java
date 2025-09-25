@@ -1,6 +1,5 @@
 package page.showmy.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -13,14 +12,11 @@ public class SkillsCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String category;
 
     @OneToMany(mappedBy = "skillsCategory", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Skill> items;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    @JsonIgnore
-    private User user;
 }
 
