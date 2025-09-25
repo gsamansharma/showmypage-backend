@@ -10,11 +10,13 @@ type Portfolio {
 }
 
 type User {
-    fullName: String
+    name: String
     title: String
     email: String
     resumeUrl: String
     profilePhoto: String
+    github: String
+    linkedin: String
 }
 
 type Project {
@@ -22,9 +24,11 @@ type Project {
     name: String
     description: String
     icon: String
-    tags: [String]
     liveUrl: String
     githubUrl: String
+    videoUrl: String
+    imageUrls: [String]
+    skills: [Skill]
 }
 
 type Publication {
@@ -40,6 +44,7 @@ type SkillCategory {
 }
 
 type Skill {
+    id: ID!
     name: String
     icon: String
 }
