@@ -64,7 +64,7 @@ public class AuthController {
         final UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        return ResponseEntity.ok(jwt);
+        return ResponseEntity.ok(Map.of("token", jwt));
     }
 
     @GetMapping("/validate")
