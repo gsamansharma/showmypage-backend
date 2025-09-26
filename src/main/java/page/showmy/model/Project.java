@@ -3,6 +3,8 @@ package page.showmy.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.HashSet;
 import java.util.List;
@@ -10,6 +12,8 @@ import java.util.Set;
 
 @Data
 @Entity
+@ToString(exclude={"skills", "user"})
+@EqualsAndHashCode(exclude = {"skills","user"})
 public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,7 +35,7 @@ public class Project {
     @Column(name = "image_url")
     private List<String> imageUrls;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     @JoinTable(
             name = "project_skills",
             joinColumns = @JoinColumn(name = "project_id"),
