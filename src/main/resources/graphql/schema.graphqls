@@ -1,5 +1,46 @@
 type Query {
     portfolio(username: String!): Portfolio
+    users: [UserProfile]
+}
+
+type Mutation {
+    updateUserProfile(profileInput: UserProfileInput!): UserProfile
+
+    addProject(projectInput: ProjectInput!): Project
+    updateProject(projectId: ID!, projectInput: ProjectInput!): Project
+    deleteProject(projectId: ID!): Boolean
+
+    addPublication(publicationInput: PublicationInput!): Publication
+    updatePublication(publicationId: ID!, publicationInput: PublicationInput!): Publication
+    deletePublication(publicationId: ID!): Boolean
+
+    updateUserSkills(skillIds:[ID!]!): [Skill]
+}
+
+input UserProfileInput{
+    name: String
+    title: String
+    resumeUrl: String
+    profilePhoto: String
+    github: String
+    linkedin: String
+}
+
+input ProjectInput{
+    name: String!
+    description: String!
+    icon: String
+    liveUrl: String
+    githubUrl: String
+    videoUrl: String
+    imageUrls: [String]
+    skillIds: [ID!]
+}
+
+input PublicationInput{
+    title: String!
+    description: String
+    url: String
 }
 
 type Portfolio {
