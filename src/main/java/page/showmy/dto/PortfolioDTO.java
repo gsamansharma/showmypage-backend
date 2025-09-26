@@ -1,4 +1,4 @@
-package page.showmy.auth.dto;
+package page.showmy.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package page.showmy.auth.dto;
+package page.showmy.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +18,19 @@ public class UserProfileDTO {
     private String github;
     private String linkedin;
 
-    public static UserProfileDTO fromEntities(User user, UserProfile userProfile){
+    public static UserProfileDTO fromEntities(User user, UserProfile userProfile) {
+        if (userProfile == null) {
+            return new UserProfileDTO(
+                    null,
+                    null,
+                    user.getEmail(), 
+                    null,
+                    null,
+                    null,
+                    null
+            );
+        }
+
         return new UserProfileDTO(
                 userProfile.getName(),
                 userProfile.getTitle(),
