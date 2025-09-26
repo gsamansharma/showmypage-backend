@@ -3,13 +3,13 @@ type Query {
 }
 
 type Portfolio {
-    user: User
+    userProfile: UserProfile
     apps: [Project]
     skillsData: [SkillCategory]
     publicationsData: [Publication]
 }
 
-type User {
+type UserProfile{
     name: String
     title: String
     email: String
@@ -39,6 +39,7 @@ type Publication {
 }
 
 type SkillCategory {
+    id: ID!
     category: String
     items: [Skill]
 }
