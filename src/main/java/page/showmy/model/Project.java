@@ -18,7 +18,6 @@ public class Project {
     @Column(nullable = false)
     private String name;
 
-    @Lob
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
