@@ -8,5 +8,4 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.defer-datasource-initialization=true
 spring.sql.init.mode=always
 
-jwt.secret=
 frontend.url=
