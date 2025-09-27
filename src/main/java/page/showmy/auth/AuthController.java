@@ -36,10 +36,6 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody SignupRequest signupRequest) {
-        if (userRepository.findByUsername(signupRequest.getUsername()).isPresent()) {
-            return ResponseEntity.badRequest().body("Error: Username is already taken!");
-        }
-
         User user = new User();
         user.setUsername(signupRequest.getUsername());
         user.setEmail(signupRequest.getEmail());
@@ -80,5 +76,21 @@ public class AuthController {
                         "valid",true,
                         "username",principal.getName(),
                         "message","Token is valid"));
+    }
+
+    @GetMapping("/check-username")
+    public ResponseEntity<?> checkUsername(@RequestParam String username) {
+        if(userRepository.findByUsername(username).isPresent()) {
+            return ResponseEntity.ok(Map.of("available",false));
+        }
+        return ResponseEntity.ok(Map.of("available",true));
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmail(@RequestParam String email) {
+        if(userRepository.findByEmail(email).isPresent()){
+            return ResponseEntity.ok(Map.of("available",false));
+        }
+        return ResponseEntity.ok(Map.of("available",true));
     }
 }
