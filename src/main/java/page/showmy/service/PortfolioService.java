@@ -65,6 +65,13 @@ public class PortfolioService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public UserProfileDTO getUserProfileByUsername(String username){
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(()-> new RuntimeException("User not found: "+username));
+        return UserProfileDTO.fromEntities(user, user.getUserProfile());
+    }
+
     @Transactional
     public UserProfileDTO updateUserProfile(String username, UserProfileInputDTO profileInput) {
         User user = userRepository.findByUsername(username)

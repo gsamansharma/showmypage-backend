@@ -1,6 +1,7 @@
 type Query {
     portfolio(username: String!): Portfolio
     users: [UserProfile]
+    user(username:String!): UserProfile
 }
 
 type Mutation {

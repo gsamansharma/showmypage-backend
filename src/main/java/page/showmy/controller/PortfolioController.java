@@ -27,4 +27,9 @@ public class PortfolioController {
     public List<UserProfileDTO> users(){
         return portfolioService.getAllUsers();
     }
+
+    @QueryMapping
+    public UserProfileDTO user(@Argument String username) {
+        return portfolioService.getUserProfileByUsername(username);
+    }
 }
