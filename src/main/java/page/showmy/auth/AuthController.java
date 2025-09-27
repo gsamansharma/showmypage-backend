@@ -5,6 +5,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import page.showmy.auth.dto.LoginRequest;
 import page.showmy.auth.dto.SignupRequest;
@@ -92,5 +94,13 @@ public class AuthController {
             return ResponseEntity.ok(Map.of("available",false));
         }
         return ResponseEntity.ok(Map.of("available",true));
+    }
+
+    @GetMapping("/oauth2/success")
+    public ResponseEntity<?> oauth2LoginSuccess(OAuth2AuthenticationToken authentication) {
+        OAuth2User oAuth2User = authentication.getPrincipal();
+        String email = oAuth2User.getAttribute("email");
+        String token = jwtUtil.generateToken(email);
+        return ResponseEntity.ok(Map.of("token", token));
     }
 }
