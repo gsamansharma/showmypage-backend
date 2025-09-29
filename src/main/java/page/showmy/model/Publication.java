@@ -17,7 +17,7 @@ public class Publication {
     private String description;
     private String url;
 
-    @ManyToOne(fetch= FetchType.LAZY)
+    @ManyToOne(fetch= FetchType.EAGER)
     @JoinColumn(name="user_id", nullable=false)
     @JsonIgnore
     private User user;

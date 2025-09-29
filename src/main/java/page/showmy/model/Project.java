@@ -43,7 +43,7 @@ public class Project {
     )
     private Set<Skill> skills = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="user_id", nullable = false)
     @JsonIgnore
     private User user;
