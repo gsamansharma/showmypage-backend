@@ -183,13 +183,23 @@ public class PortfolioService {
         Publication publication = publicationRepository.findById(publicationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Publication not found: " + publicationId));
 
+        if (publication.getUser() == null) {
+            throw new IllegalStateException("Publication with ID " + publicationId + " has no associated user.");
+        }
+
         if (!publication.getUser().getId().equals(user.getId())) {
             throw new SecurityException("You are not authorized to edit this publication.");
         }
 
-        publication.setTitle(publicationInput.getTitle());
-        publication.setDescription(publicationInput.getDescription());
-        publication.setUrl(publicationInput.getUrl());
+        if (publicationInput.getTitle() != null) {
+            publication.setTitle(publicationInput.getTitle());
+        }
+        if (publicationInput.getDescription() != null) {
+            publication.setDescription(publicationInput.getDescription());
+        }
+        if (publicationInput.getUrl() != null) {
+            publication.setUrl(publicationInput.getUrl());
+        }
 
         return publicationRepository.save(publication);
     }
