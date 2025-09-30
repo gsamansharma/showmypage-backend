@@ -1,5 +1,6 @@
 package page.showmy.auth;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,6 +11,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import page.showmy.auth.dto.LoginRequest;
 import page.showmy.auth.dto.SignupRequest;
+import page.showmy.model.AuthProvider;
 import page.showmy.model.User;
 import page.showmy.repository.UserRepository;
 import page.showmy.security.JwtUtil;
@@ -38,9 +40,18 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody SignupRequest signupRequest) {
+        if (userRepository.findByUsername(signupRequest.getUsername()).isPresent()) {
+            return ResponseEntity.badRequest().body("Error: Username is already taken!");
+        }
+
+        if (userRepository.findByEmail(signupRequest.getEmail()).isPresent()) {
+            return ResponseEntity.badRequest().body("Error: Email is already in use!");
+        }
+
         User user = new User();
         user.setUsername(signupRequest.getUsername());
         user.setEmail(signupRequest.getEmail());
+        user.setAuthProvider(AuthProvider.local);
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
 
         userRepository.save(user);
@@ -96,11 +107,21 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("available",true));
     }
 
+    @PostMapping("/oauth/initiate")
+    public ResponseEntity<?> initiateOAuthRegistration(@RequestParam String username, HttpServletRequest request) {
+        if (userRepository.findByUsername(username).isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Username is already taken!"));
+        }
+        request.getSession().setAttribute("OAUTH2_USERNAME", username);
+        return ResponseEntity.ok(Map.of("message", "Username saved. Proceed to OAuth2 login."));
+    }
+
     @GetMapping("/oauth2/success")
     public ResponseEntity<?> oauth2LoginSuccess(OAuth2AuthenticationToken authentication) {
         OAuth2User oAuth2User = authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
-        String token = jwtUtil.generateToken(email);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        String token = jwtUtil.generateToken(userDetails);
         return ResponseEntity.ok(Map.of("token", token));
     }
 }
