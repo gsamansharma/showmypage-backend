@@ -10,11 +10,18 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import page.showmy.auth.CustomOAuth2UserService;
+import page.showmy.auth.GitHubEmailEnricher;
+import page.showmy.auth.OAuth2LoginSuccessHandler;
 import page.showmy.security.JwtRequestFilter;
 
 import java.util.List;
@@ -24,9 +31,14 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtRequestFilter jwtRequestFilter;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-    public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
+    public SecurityConfig(JwtRequestFilter jwtRequestFilter, CustomOAuth2UserService customOAuth2UserService, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
         this.jwtRequestFilter = jwtRequestFilter;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+
     }
 
     @Value("${frontend.url}")
@@ -37,17 +49,37 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/graphql", "/graphiql", "/login/oauth2/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/graphql", "/graphiql", "/login/**","/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/api/auth/oauth2/success")
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(oauth2UserService())
+                        )
+                        .successHandler(oAuth2LoginSuccessHandler)
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
 
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+    @Bean
+    public OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService() {
+        GitHubEmailEnricher gitHubEmailEnricher = new GitHubEmailEnricher();
+        DefaultOAuth2UserService googleUserService = new DefaultOAuth2UserService();
+        return request -> {
+            String registrationId = request.getClientRegistration().getRegistrationId();
+            OAuth2User oAuth2User;
+            if ("github".equalsIgnoreCase(registrationId)) {
+                oAuth2User = gitHubEmailEnricher.loadUser(request);
+            }
+            else {
+                oAuth2User = googleUserService.loadUser(request);
+            }
+                return customOAuth2UserService.processOAuthUser(oAuth2User, registrationId);
+
+        };
     }
 
     @Bean
