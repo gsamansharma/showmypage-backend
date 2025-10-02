@@ -30,7 +30,10 @@ public class User {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date resetTokenExpiryDate;
-    
+
+    @Column(nullable = false)
+    private Boolean isEmailVerified;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AuthProvider authProvider;

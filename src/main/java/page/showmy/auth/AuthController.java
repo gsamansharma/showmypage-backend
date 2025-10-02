@@ -56,9 +56,15 @@ public class AuthController {
         user.setAuthProvider(AuthProvider.local);
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
 
+        String verificationToken = jwtUtil.generateResetToken(user.getUsername());
+        Date expirationDate = jwtUtil.extractExpiration(verificationToken);
+        user.setResetToken(verificationToken);
+        user.setResetTokenExpiryDate(expirationDate);
+        user.setIsEmailVerified(false);
         userRepository.save(user);
 
-        return ResponseEntity.ok(Map.of("message","User registered successfully!"));
+        System.out.println("Token for Email " + user.getEmail() + " " + verificationToken);
+        return ResponseEntity.ok(Map.of("message","User registered successfully! Check your email for a verification link!"));
     }
 
     @PostMapping("/login")
@@ -76,6 +82,43 @@ public class AuthController {
         final String jwt = jwtUtil.generateToken(userDetails);
 
         return ResponseEntity.ok(Map.of("token", jwt));
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestBody VerifyEmailRequest verifyEmailRequest) {
+        String username;
+        Date tokenExpiryDate;
+
+        try{
+            username = jwtUtil.extractUsername(verifyEmailRequest.getToken());
+            tokenExpiryDate = jwtUtil.extractExpiration(verifyEmailRequest.getToken());
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid verification token"));
+        }
+        if(tokenExpiryDate.before(new Date())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Token expired."));
+        }
+
+        Optional<User> userOptional = userRepository.findByUsername(username);
+
+        if(userOptional.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found!"));
+        }
+        User user = userOptional.get();
+
+        if(Boolean.TRUE.equals(user.getIsEmailVerified())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Email is already verified!"));
+        }
+
+        if(user.getResetToken() == null || !user.getResetToken().equals(verifyEmailRequest.getToken())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid or previously used verification token"));
+        }
+        user.setIsEmailVerified(true);
+        user.setResetToken(null);
+        user.setResetTokenExpiryDate(null);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Map.of("message", "Email successfully verified."));
     }
 
     @PostMapping("/forgot-password")
