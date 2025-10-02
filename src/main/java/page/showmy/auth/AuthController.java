@@ -16,6 +16,7 @@ import page.showmy.model.User;
 import page.showmy.repository.UserRepository;
 import page.showmy.security.JwtUtil;
 import page.showmy.security.UserDetailsServiceImpl;
+import page.showmy.service.EmailService;
 
 import java.security.Principal;
 import java.util.Date;
@@ -31,13 +32,15 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
+    private final EmailService emailService;
 
-    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) {
+    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, EmailService emailService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.emailService = emailService;
     }
 
     @PostMapping("/signup")
@@ -62,8 +65,7 @@ public class AuthController {
         user.setResetTokenExpiryDate(expirationDate);
         user.setIsEmailVerified(false);
         userRepository.save(user);
-
-        System.out.println("Token for Email " + user.getEmail() + " " + verificationToken);
+        emailService.sendVerificationEmail(user.getEmail(), verificationToken);
         return ResponseEntity.ok(Map.of("message","User registered successfully! Check your email for a verification link!"));
     }
 
@@ -136,8 +138,7 @@ public class AuthController {
         user.setResetTokenExpiryDate(expiryDate);
         userRepository.save(user);
 
-
-        System.out.println("Password reset token " + user.getEmail() + ": " + resetToken);
+        emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
 
         return ResponseEntity.ok(Map.of("message", "If an account with that email exists, a password reset link has been sent." ));
     }
