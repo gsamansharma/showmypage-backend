@@ -1,6 +1,7 @@
 package page.showmy.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,8 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
-import page.showmy.auth.dto.LoginRequest;
-import page.showmy.auth.dto.SignupRequest;
+import page.showmy.auth.dto.*;
 import page.showmy.model.AuthProvider;
 import page.showmy.model.User;
 import page.showmy.repository.UserRepository;
@@ -18,7 +18,9 @@ import page.showmy.security.JwtUtil;
 import page.showmy.security.UserDetailsServiceImpl;
 
 import java.security.Principal;
+import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -74,6 +76,63 @@ public class AuthController {
         final String jwt = jwtUtil.generateToken(userDetails);
 
         return ResponseEntity.ok(Map.of("token", jwt));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
+        Optional<User> userOptional = userRepository.findByEmail(forgotPasswordRequest.getEmail());
+
+        if(userOptional.isEmpty())
+            return ResponseEntity.ok(Map.of("message", "If an account with that email exists, a password reset link has been sent."));
+
+        User user = userOptional.get();
+        String resetToken = jwtUtil.generateResetToken(user.getUsername());
+        Date expiryDate = jwtUtil.extractExpiration(resetToken);
+
+        user.setResetToken(resetToken);
+        user.setResetTokenExpiryDate(expiryDate);
+        userRepository.save(user);
+
+
+        System.out.println("Password reset token " + user.getEmail() + ": " + resetToken);
+
+        return ResponseEntity.ok(Map.of("message", "If an account with that email exists, a password reset link has been sent." ));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) {
+        String username;
+        Date tokenExpiry;
+
+        try{
+            username = jwtUtil.extractUsername(resetPasswordRequest.getToken());
+            tokenExpiry = jwtUtil.extractExpiration(resetPasswordRequest.getToken());
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid or malformed reset token. "));
+
+        }
+        if(tokenExpiry.before(new Date())){
+            return ResponseEntity.badRequest().body(Map.of("error", "Reset token has expired."));
+        }
+
+        Optional<User> userOptional = userRepository.findByUsername(username);
+
+        if(userOptional.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+        }
+
+        User user = userOptional.get();
+
+        if(user.getResetToken() == null || !user.getResetToken().equals(resetPasswordRequest.getToken())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid or previously used reset Token."));
+        }
+
+        user.setPassword(passwordEncoder.encode(resetPasswordRequest.getNewPassword()));
+        user.setResetToken(null);
+        user.setResetTokenExpiryDate(null);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Map.of("message", "Password has been successfully reset."));
     }
 
     @GetMapping("/validate")

@@ -3,10 +3,7 @@ package page.showmy.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -28,6 +25,12 @@ public class User {
 
     private String password;
 
+    @Column(unique = true)
+    private String resetToken;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date resetTokenExpiryDate;
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AuthProvider authProvider;
