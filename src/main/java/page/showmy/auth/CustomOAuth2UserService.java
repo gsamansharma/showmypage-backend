@@ -56,6 +56,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         newUser.setUsername(username);
         newUser.setAuthProvider(AuthProvider.valueOf(registrationId));
         newUser.setPassword(null);
+        newUser.setIsEmailVerified(true);
         userRepository.save(newUser);
 
         return oAuth2User;
