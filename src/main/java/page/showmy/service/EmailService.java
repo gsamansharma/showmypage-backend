@@ -44,7 +44,7 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(String userEmail, String token) {
-        String verificationLink = String.format("%s/verify-account?token=%s", frontendUrl, token);
+        String verificationLink = String.format("%s/verify-email?token=%s", frontendUrl, token);
         String subject = "Verify Your ShowMyPage Account";
         String html = String.format("""
         <!DOCTYPE html>
