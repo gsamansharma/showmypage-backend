@@ -1,9 +1,6 @@
-# Stage 1: Build
+# Stage 1: Build the application
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
-
-# Install certificates
-RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
 
 # Copy Maven wrapper and pom
 COPY mvnw pom.xml ./
@@ -15,7 +12,7 @@ COPY src src
 # Build jar
 RUN ./mvnw clean package -DskipTests
 
-# Stage 2: Run
+# Stage 2: Run the application
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
