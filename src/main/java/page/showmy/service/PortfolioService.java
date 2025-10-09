@@ -113,6 +113,9 @@ public class PortfolioService {
 
     @Transactional
     public Project updateProject(Long projectId, String username, ProjectInputDTO projectInput) {
+        if (projectInput == null) {
+            throw new IllegalArgumentException("Project input cannot be null.");
+        }
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         Project project = projectRepository.findById(projectId)
@@ -128,18 +131,30 @@ public class PortfolioService {
     }
 
     private void updateProjectEntity(Project project, ProjectInputDTO projectInput) {
-        project.setName(projectInput.getName());
-        project.setDescription(projectInput.getDescription());
-        project.setIcon(projectInput.getIcon());
-        project.setLiveUrl(projectInput.getLiveUrl());
-        project.setGithubUrl(projectInput.getGithubUrl());
-        project.setVideoUrl(projectInput.getVideoUrl());
-        project.setImageUrls(projectInput.getImageUrls());
+        if (projectInput.getName() != null) {
+            project.setName(projectInput.getName());
+        }
+        if (projectInput.getDescription() != null) {
+            project.setDescription(projectInput.getDescription());
+        }
+        if (projectInput.getIcon() != null) {
+            project.setIcon(projectInput.getIcon());
+        }
+        if (projectInput.getLiveUrl() != null) {
+            project.setLiveUrl(projectInput.getLiveUrl());
+        }
+        if (projectInput.getGithubUrl() != null) {
+            project.setGithubUrl(projectInput.getGithubUrl());
+        }
+        if (projectInput.getVideoUrl() != null) {
+            project.setVideoUrl(projectInput.getVideoUrl());
+        }
+        if (projectInput.getImageUrls() != null) {
+            project.setImageUrls(projectInput.getImageUrls());
+        }
         if (projectInput.getSkillIds() != null) {
             Set<Skill> skills = new HashSet<>(skillRepository.findAllById(projectInput.getSkillIds()));
             project.setSkills(skills);
-        } else {
-            project.setSkills(new HashSet<>());
         }
     }
 
@@ -173,6 +188,9 @@ public class PortfolioService {
 
     @Transactional
     public Publication updatePublication(Long publicationId, String username, PublicationInputDTO publicationInput) {
+        if(publicationInput == null) {
+            throw new IllegalArgumentException("Publication input cannot be null.");
+        }
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         Publication publication = publicationRepository.findById(publicationId)
@@ -220,6 +238,9 @@ public class PortfolioService {
 
     @Transactional
     public WorkExperience addWorkExperience(String username, WorkExperienceInputDTO workExperienceInput) {
+        if(workExperienceInput == null) {
+            throw new IllegalArgumentException("Work experience input cannot be null.");
+        }
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         WorkExperience workExperience = new WorkExperience();
@@ -247,26 +268,32 @@ public class PortfolioService {
     }
 
     private void updateWorkExperienceEntity(WorkExperience workExperience, WorkExperienceInputDTO workExperienceInput) {
-        workExperience.setJobTitle(workExperienceInput.getJobTitle());
-        workExperience.setCompanyName(workExperienceInput.getCompanyName());
-        workExperience.setCompanyLogoUrl(workExperienceInput.getCompanyLogoUrl());
-        workExperience.setLocation(workExperienceInput.getLocation());
+        if(workExperienceInput.getJobTitle() != null) {
+            workExperience.setJobTitle(workExperienceInput.getJobTitle());
+        }
+        if(workExperienceInput.getCompanyName() != null) {
+            workExperience.setCompanyName(workExperienceInput.getCompanyName());
+        }
+        if(workExperienceInput.getCompanyLogoUrl() != null) {
+            workExperience.setCompanyLogoUrl(workExperienceInput.getCompanyLogoUrl());
+        }
+        if(workExperienceInput.getLocation() != null) {
+            workExperience.setLocation(workExperienceInput.getLocation());
+        }
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM");
         try {
             if (workExperienceInput.getStartDate() != null && !workExperienceInput.getStartDate().isBlank()) {
                 workExperience.setStartDate(formatter.parse(workExperienceInput.getStartDate()));
-            } else {
-                workExperience.setStartDate(null);
             }
             if (workExperienceInput.getEndDate() != null && !workExperienceInput.getEndDate().isBlank()) {
                 workExperience.setEndDate(formatter.parse(workExperienceInput.getEndDate()));
-            } else {
-                workExperience.setEndDate(null);
             }
         } catch (ParseException e) {
             throw new IllegalArgumentException("Invalid date format. Please use yyyy-MM.", e);
         }
-        workExperience.setDescription(workExperienceInput.getDescription());
+        if(workExperienceInput.getDescription() != null) {
+            workExperience.setDescription(workExperienceInput.getDescription());
+        }
         if (workExperienceInput.getSkillIds() != null) {
             Set<Skill> skills = new HashSet<>(skillRepository.findAllById(workExperienceInput.getSkillIds()));
             workExperience.setSkills(skills);

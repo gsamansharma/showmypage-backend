@@ -32,8 +32,8 @@ input UserProfileInput{
 }
 
 input ProjectInput{
-    name: String!
-    description: String!
+    name: String
+    description: String
     icon: String
     liveUrl: String
     githubUrl: String
@@ -43,17 +43,17 @@ input ProjectInput{
 }
 
 input PublicationInput{
-    title: String!
+    title: String
     description: String
     url: String
 }
 
 input WorkExperienceInput{
-    jobTitle: String!
-    companyName: String!
+    jobTitle: String
+    companyName: String
     companyLogoUrl: String
     location: String
-    startDate: String!
+    startDate: String
     endDate: String
     description: String
     skillIds: [ID!]
