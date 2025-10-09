@@ -1,5 +1,7 @@
 package page.showmy.service;
 
+import org.hibernate.Hibernate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,9 @@ public class PortfolioService {
     private final WorkExperienceRepository workExperienceRepository;
     private final SkillRepository skillRepository;
 
+    @Autowired
+    private RedisService redisService;
+
     public PortfolioService(UserRepository userRepository, ProjectRepository projectRepository, PublicationRepository publicationRepository, SkillRepository skillRepository, WorkExperienceRepository workExperienceRepository) {
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
@@ -32,10 +37,19 @@ public class PortfolioService {
 
     @Transactional(readOnly = true)
     public PortfolioDTO getPortfolioByUsername(String username){
+        try {
+            PortfolioDTO cachedPortfolio = redisService.get(username, PortfolioDTO.class);
+            if (cachedPortfolio != null) {
+                return cachedPortfolio;
+            }
+        } catch (Exception e) {
+            throw new ResourceNotFoundException(username);
+        }
         User user = userRepository.findByUsername(username)
                 .orElseThrow(()-> new RuntimeException("User not found: "+username));
         UserProfileDTO userProfileDTO = UserProfileDTO.fromEntities(user, user.getUserProfile());
 
+        Hibernate.initialize(user.getPublications());
         List<Project> projects = user.getProjects();
         projects.forEach(project -> project.getSkills().size());
         Map<SkillsCategory, List<Skill>> skillsByCategory = user.getSkills().stream()
@@ -56,6 +70,8 @@ public class PortfolioService {
                 new ArrayList<>(user.getPublications()),
                 new ArrayList<>(user.getWorkExperiences())
         );
+
+        redisService.set(username, portfolioFromDb, 1800L);
 
         return portfolioFromDb;
 
