@@ -161,7 +161,7 @@ public class PortfolioService {
             throw new SecurityException("You are not authorized to delete this project.");
         }
 
-        projectRepository.deleteById(projectId);
+        user.getProjects().remove(project);
         return true;
     }
 
@@ -218,7 +218,7 @@ public class PortfolioService {
             throw new SecurityException("You are not authorized to delete this publication.");
         }
 
-        publicationRepository.deleteById(publicationId);
+        user.getPublications().remove(publication);
         return true;
     }
 
@@ -267,7 +267,8 @@ public class PortfolioService {
         if(!workExperience.getUser().getId().equals(user.getId())) {
             throw new SecurityException("You are not authorized to delete this work experience.");
         }
-        workExperienceRepository.deleteById(workExperienceId);
+
+        user.getWorkExperiences().remove(workExperience);
         return true;
     }
 
