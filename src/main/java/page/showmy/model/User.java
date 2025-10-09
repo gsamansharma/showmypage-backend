@@ -10,8 +10,8 @@ import java.util.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
-@ToString(exclude = {"userProfile","projects", "publications", "skills"})
-@EqualsAndHashCode(exclude = {"userProfile", "projects", "publications", "skills"})
+@ToString(exclude = {"userProfile","projects", "publications", "skills", "workExperiences"})
+@EqualsAndHashCode(exclude = {"userProfile", "projects", "publications", "skills", "workExperiences"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,6 +47,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Publication> publications = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<WorkExperience> workExperiences = new ArrayList<>();
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_skills",
@@ -63,5 +66,10 @@ public class User {
     public void addPublication(Publication publication) {
         this.publications.add(publication);
         publication.setUser(this);
+    }
+
+    public void addWorkExperience(WorkExperience workExperience) {
+        this.workExperiences.add(workExperience);
+        workExperience.setUser(this);
     }
 }

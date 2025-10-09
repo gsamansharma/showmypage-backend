@@ -15,6 +15,10 @@ type Mutation {
     updatePublication(publicationId: ID!, publicationInput: PublicationInput!): Publication
     deletePublication(publicationId: ID!): Boolean
 
+    addWorkExperience(workExperienceInput: WorkExperienceInput!): WorkExperience
+    updateWorkExperience(experienceId: ID!, workExperienceInput: WorkExperienceInput!): WorkExperience
+    deleteWorkExperience(experienceId: ID!): Boolean
+
     updateUserSkills(skillIds:[ID!]!): [Skill]
 }
 
@@ -44,11 +48,23 @@ input PublicationInput{
     url: String
 }
 
+input WorkExperienceInput{
+    jobTitle: String!
+    companyName: String!
+    companyLogoUrl: String
+    location: String
+    startDate: String!
+    endDate: String
+    description: String
+    skillIds: [ID!]
+}
+
 type Portfolio {
     userProfile: UserProfile
     apps: [Project]
     skillsData: [SkillCategory]
     publicationsData: [Publication]
+    workExperienceData: [WorkExperience]
 }
 
 type UserProfile{
@@ -80,6 +96,17 @@ type Publication {
     url: String
 }
 
+type WorkExperience{
+    id: ID!
+    jobTitle: String
+    companyName: String
+    companyLogoUrl: String
+    location: String
+    startDate: String
+    endDate: String
+    description: String
+    skills: [Skill]
+}
 type SkillCategory {
     id: ID!
     category: String

@@ -7,11 +7,11 @@ import page.showmy.dto.*;
 import page.showmy.exception.ResourceNotFoundException;
 import page.showmy.model.*;
 import page.showmy.repository.*;
+import page.showmy.repository.WorkExperienceRepository;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,12 +20,14 @@ public class PortfolioService {
     
     private final ProjectRepository projectRepository;
     private final PublicationRepository publicationRepository;
+    private final WorkExperienceRepository workExperienceRepository;
     private final SkillRepository skillRepository;
 
-    public PortfolioService(UserRepository userRepository, SkillsCategoryRepository skillsCategoryRepository, ProjectRepository projectRepository, PublicationRepository publicationRepository, SkillRepository skillRepository) {
+    public PortfolioService(UserRepository userRepository, ProjectRepository projectRepository, PublicationRepository publicationRepository, SkillRepository skillRepository, WorkExperienceRepository workExperienceRepository) {
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
         this.publicationRepository = publicationRepository;
+        this.workExperienceRepository = workExperienceRepository;
         this.skillRepository = skillRepository;
     }
 
@@ -53,7 +55,8 @@ public class PortfolioService {
                 userProfileDTO,
                 projects,
                 userSkillsData,
-                user.getPublications()
+                user.getPublications(),
+                user.getWorkExperiences()
         );
     }
 
@@ -217,6 +220,92 @@ public class PortfolioService {
 
         publicationRepository.deleteById(publicationId);
         return true;
+    }
+
+    @Transactional
+    public WorkExperience addWorkExperience(String username, WorkExperienceInputDTO workExperienceInput) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        WorkExperience workExperience = new WorkExperience();
+        workExperience.setUser(user);
+        workExperience.setJobTitle(workExperienceInput.getJobTitle());
+        workExperience.setCompanyName(workExperienceInput.getCompanyName());
+        workExperience.setCompanyLogoUrl(workExperienceInput.getCompanyLogoUrl());
+        workExperience.setLocation(workExperienceInput.getLocation());
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM");
+        try {
+            if (workExperienceInput.getStartDate() != null && !workExperienceInput.getStartDate().isBlank()) {
+
+                workExperience.setStartDate(formatter.parse(workExperienceInput.getStartDate()));
+            } else {
+                workExperience.setStartDate(null);
+            }
+
+            if (workExperienceInput.getEndDate() != null && !workExperienceInput.getEndDate().isBlank()) {
+                workExperience.setEndDate(formatter.parse(workExperienceInput.getEndDate()));
+            } else {
+                workExperience.setEndDate(null);
+            }
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Invalid date format. Please use yyyy-MM.", e);
+        }
+        workExperience.setDescription(workExperienceInput.getDescription());
+        if (workExperienceInput.getSkillIds() != null) {
+            Set<Skill> skills = new HashSet<>(skillRepository.findAllById(workExperienceInput.getSkillIds()));
+            workExperience.setSkills(skills);
+        }
+        return workExperienceRepository.save(workExperience);
+    }
+
+    @Transactional
+    public boolean deleteWorkExperience(Long workExperienceId, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        WorkExperience workExperience = workExperienceRepository.findById(workExperienceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Work experience not found with ID: " + workExperienceId));
+
+        if(!workExperience.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("You are not authorized to delete this work experience.");
+        }
+        workExperienceRepository.deleteById(workExperienceId);
+        return true;
+    }
+
+    @Transactional
+    public WorkExperience updateWorkExperience(Long workExperienceId, String username, WorkExperienceInputDTO workExperienceInput) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        WorkExperience workExperience = workExperienceRepository.findById(workExperienceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Work experience not found with ID: " + workExperienceId));
+
+        if(!workExperience.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("You are not authorized to update this work experience.");
+        }
+        workExperience.setJobTitle(workExperienceInput.getJobTitle());
+        workExperience.setCompanyName(workExperienceInput.getCompanyName());
+        workExperience.setCompanyLogoUrl(workExperienceInput.getCompanyLogoUrl());
+        workExperience.setLocation(workExperienceInput.getLocation());
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM");
+        try {
+            if (workExperienceInput.getStartDate() != null && !workExperienceInput.getStartDate().isBlank()) {
+                workExperience.setStartDate(formatter.parse(workExperienceInput.getStartDate()));
+            } else {
+                workExperience.setStartDate(null);
+            }
+            if (workExperienceInput.getEndDate() != null && !workExperienceInput.getEndDate().isBlank()) {
+                workExperience.setEndDate(formatter.parse(workExperienceInput.getEndDate()));
+            } else {
+                workExperience.setEndDate(null);
+            }
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Invalid date format. Please use yyyy-MM.", e);
+        }
+        workExperience.setDescription(workExperienceInput.getDescription());
+        if (workExperienceInput.getSkillIds() != null) {
+            Set<Skill> skills = new HashSet<>(skillRepository.findAllById(workExperienceInput.getSkillIds()));
+            workExperience.setSkills(skills);
+        }
+        return workExperienceRepository.save(workExperience);
     }
 
     @Transactional

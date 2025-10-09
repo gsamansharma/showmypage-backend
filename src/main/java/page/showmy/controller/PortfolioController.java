@@ -8,6 +8,7 @@ import page.showmy.dto.*;
 import page.showmy.model.Project;
 import page.showmy.model.Publication;
 import page.showmy.model.Skill;
+import page.showmy.model.WorkExperience;
 import page.showmy.service.PortfolioService;
 
 import java.security.Principal;
@@ -84,5 +85,23 @@ public class PortfolioController {
     public Set<Skill> updateUserSkills(@Argument List<Long> skillIds, Principal principal){
         String username = principal.getName();
         return portfolioService.updateUserSkills(username, skillIds);
+    }
+
+    @MutationMapping
+    public WorkExperience addWorkExperience(@Argument WorkExperienceInputDTO workExperienceInput, Principal principal) {
+        String username = principal.getName();
+        return portfolioService.addWorkExperience(username, workExperienceInput);
+    }
+
+    @MutationMapping
+    public WorkExperience updateWorkExperience(@Argument Long experienceId, @Argument WorkExperienceInputDTO workExperienceInput, Principal principal) {
+        String username = principal.getName();
+        return portfolioService.updateWorkExperience(experienceId, username, workExperienceInput);
+    }
+
+    @MutationMapping
+    public boolean deleteWorkExperience(@Argument Long experienceId, Principal principal) {
+        String username = principal.getName();
+        return portfolioService.deleteWorkExperience(experienceId, username);
     }
 }
