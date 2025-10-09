@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 @Service
 public class PortfolioService {
     private final UserRepository userRepository;
-    
     private final ProjectRepository projectRepository;
     private final PublicationRepository publicationRepository;
     private final WorkExperienceRepository workExperienceRepository;
@@ -39,25 +38,27 @@ public class PortfolioService {
 
         List<Project> projects = user.getProjects();
         projects.forEach(project -> project.getSkills().size());
-        Map<SkillsCategory, List<Skill>> userSkillsByCategory = user.getSkills().stream()
+        Map<SkillsCategory, List<Skill>> skillsByCategory = user.getSkills().stream()
                 .collect(Collectors.groupingBy(Skill::getSkillsCategory));
 
-        List<SkillsCategory> userSkillsData = userSkillsByCategory.entrySet().stream()
-                .map(entry -> {
-                    SkillsCategory skillsCategory = entry.getKey();
-                    skillsCategory.setItems(entry.getValue());
-                    return skillsCategory;
-                })
+        List<SkillsCategoryDTO> skillsDataDTO = skillsByCategory.entrySet().stream()
+                .map(entry -> new SkillsCategoryDTO(
+                        entry.getKey().getId(),
+                        entry.getKey().getCategory(),
+                        entry.getValue().stream().map(SkillDTO::fromEntity).collect(Collectors.toList())
+                ))
                 .collect(Collectors.toList());
 
-
-        return new PortfolioDTO(
+        PortfolioDTO portfolioFromDb = new PortfolioDTO(
                 userProfileDTO,
-                projects,
-                userSkillsData,
-                user.getPublications(),
-                user.getWorkExperiences()
+                new ArrayList<>(user.getProjects()),
+                skillsDataDTO,
+                new ArrayList<>(user.getPublications()),
+                new ArrayList<>(user.getWorkExperiences())
         );
+
+        return portfolioFromDb;
+
     }
 
     @Transactional(readOnly = true)
@@ -204,7 +205,7 @@ public class PortfolioService {
             throw new SecurityException("You are not authorized to edit this publication.");
         }
 
-       updatePublicationEntity(publication, publicationInput);
+        updatePublicationEntity(publication, publicationInput);
 
         return publicationRepository.save(publication);
     }
