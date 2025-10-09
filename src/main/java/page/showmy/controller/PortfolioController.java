@@ -52,7 +52,7 @@ public class PortfolioController {
     }
 
     @MutationMapping
-    public Project updateProject(@Argument Long projectId, ProjectInputDTO projectInput, Principal principal) {
+    public Project updateProject(@Argument Long projectId, @Argument ProjectInputDTO projectInput, Principal principal) {
         String username = principal.getName();
         return portfolioService.updateProject(projectId, username, projectInput);
     }
@@ -70,7 +70,7 @@ public class PortfolioController {
     }
 
     @MutationMapping
-    public Publication updatePublication(@Argument Long publicationId, PublicationInputDTO publicationInput, Principal principal) {
+    public Publication updatePublication(@Argument Long publicationId, @Argument PublicationInputDTO publicationInput, Principal principal) {
         String username = principal.getName();
         return portfolioService.updatePublication(publicationId, username, publicationInput);
     }
