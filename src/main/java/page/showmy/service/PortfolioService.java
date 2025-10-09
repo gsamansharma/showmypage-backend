@@ -105,18 +105,8 @@ public class PortfolioService {
 
         Project project = new Project();
         project.setUser(user);
-        project.setName(projectInput.getName());
-        project.setDescription(projectInput.getDescription());
-        project.setIcon(projectInput.getIcon());
-        project.setLiveUrl(projectInput.getLiveUrl());
-        project.setGithubUrl(projectInput.getGithubUrl());
-        project.setVideoUrl(projectInput.getVideoUrl());
-        project.setImageUrls(projectInput.getImageUrls());
 
-        if (projectInput.getSkillIds() != null && !projectInput.getSkillIds().isEmpty()) {
-            Set<Skill> skills = new HashSet<>(skillRepository.findAllById(projectInput.getSkillIds()));
-            project.setSkills(skills);
-        }
+        updateProjectEntity(project, projectInput);
 
         return projectRepository.save(project);
     }
@@ -132,6 +122,12 @@ public class PortfolioService {
             throw new SecurityException("You are not authorized to edit this project.");
         }
 
+        updateProjectEntity(project, projectInput);
+
+        return projectRepository.save(project);
+    }
+
+    private void updateProjectEntity(Project project, ProjectInputDTO projectInput) {
         project.setName(projectInput.getName());
         project.setDescription(projectInput.getDescription());
         project.setIcon(projectInput.getIcon());
@@ -139,15 +135,12 @@ public class PortfolioService {
         project.setGithubUrl(projectInput.getGithubUrl());
         project.setVideoUrl(projectInput.getVideoUrl());
         project.setImageUrls(projectInput.getImageUrls());
-
         if (projectInput.getSkillIds() != null) {
             Set<Skill> skills = new HashSet<>(skillRepository.findAllById(projectInput.getSkillIds()));
             project.setSkills(skills);
         } else {
             project.setSkills(new HashSet<>());
         }
-
-        return projectRepository.save(project);
     }
 
     @Transactional
@@ -172,9 +165,8 @@ public class PortfolioService {
 
         Publication publication = new Publication();
         publication.setUser(user);
-        publication.setTitle(publicationInput.getTitle());
-        publication.setDescription(publicationInput.getDescription());
-        publication.setUrl(publicationInput.getUrl());
+
+        updatePublicationEntity(publication, publicationInput);
 
         return publicationRepository.save(publication);
     }
@@ -194,6 +186,12 @@ public class PortfolioService {
             throw new SecurityException("You are not authorized to edit this publication.");
         }
 
+       updatePublicationEntity(publication, publicationInput);
+
+        return publicationRepository.save(publication);
+    }
+
+    private void updatePublicationEntity(Publication publication, PublicationInputDTO publicationInput) {
         if (publicationInput.getTitle() != null) {
             publication.setTitle(publicationInput.getTitle());
         }
@@ -203,8 +201,6 @@ public class PortfolioService {
         if (publicationInput.getUrl() != null) {
             publication.setUrl(publicationInput.getUrl());
         }
-
-        return publicationRepository.save(publication);
     }
 
     @Transactional
@@ -228,6 +224,29 @@ public class PortfolioService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         WorkExperience workExperience = new WorkExperience();
         workExperience.setUser(user);
+
+        updateWorkExperienceEntity(workExperience, workExperienceInput);
+
+        return workExperienceRepository.save(workExperience);
+    }
+
+    @Transactional
+    public WorkExperience updateWorkExperience(Long workExperienceId, String username, WorkExperienceInputDTO workExperienceInput) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        WorkExperience workExperience = workExperienceRepository.findById(workExperienceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Work experience not found with ID: " + workExperienceId));
+
+        if(!workExperience.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("You are not authorized to update this work experience.");
+        }
+
+        updateWorkExperienceEntity(workExperience, workExperienceInput);
+
+        return workExperienceRepository.save(workExperience);
+    }
+
+    private void updateWorkExperienceEntity(WorkExperience workExperience, WorkExperienceInputDTO workExperienceInput) {
         workExperience.setJobTitle(workExperienceInput.getJobTitle());
         workExperience.setCompanyName(workExperienceInput.getCompanyName());
         workExperience.setCompanyLogoUrl(workExperienceInput.getCompanyLogoUrl());
@@ -235,12 +254,10 @@ public class PortfolioService {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM");
         try {
             if (workExperienceInput.getStartDate() != null && !workExperienceInput.getStartDate().isBlank()) {
-
                 workExperience.setStartDate(formatter.parse(workExperienceInput.getStartDate()));
             } else {
                 workExperience.setStartDate(null);
             }
-
             if (workExperienceInput.getEndDate() != null && !workExperienceInput.getEndDate().isBlank()) {
                 workExperience.setEndDate(formatter.parse(workExperienceInput.getEndDate()));
             } else {
@@ -254,7 +271,6 @@ public class PortfolioService {
             Set<Skill> skills = new HashSet<>(skillRepository.findAllById(workExperienceInput.getSkillIds()));
             workExperience.setSkills(skills);
         }
-        return workExperienceRepository.save(workExperience);
     }
 
     @Transactional
@@ -270,43 +286,6 @@ public class PortfolioService {
 
         user.getWorkExperiences().remove(workExperience);
         return true;
-    }
-
-    @Transactional
-    public WorkExperience updateWorkExperience(Long workExperienceId, String username, WorkExperienceInputDTO workExperienceInput) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-        WorkExperience workExperience = workExperienceRepository.findById(workExperienceId)
-                .orElseThrow(() -> new ResourceNotFoundException("Work experience not found with ID: " + workExperienceId));
-
-        if(!workExperience.getUser().getId().equals(user.getId())) {
-            throw new SecurityException("You are not authorized to update this work experience.");
-        }
-        workExperience.setJobTitle(workExperienceInput.getJobTitle());
-        workExperience.setCompanyName(workExperienceInput.getCompanyName());
-        workExperience.setCompanyLogoUrl(workExperienceInput.getCompanyLogoUrl());
-        workExperience.setLocation(workExperienceInput.getLocation());
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM");
-        try {
-            if (workExperienceInput.getStartDate() != null && !workExperienceInput.getStartDate().isBlank()) {
-                workExperience.setStartDate(formatter.parse(workExperienceInput.getStartDate()));
-            } else {
-                workExperience.setStartDate(null);
-            }
-            if (workExperienceInput.getEndDate() != null && !workExperienceInput.getEndDate().isBlank()) {
-                workExperience.setEndDate(formatter.parse(workExperienceInput.getEndDate()));
-            } else {
-                workExperience.setEndDate(null);
-            }
-        } catch (ParseException e) {
-            throw new IllegalArgumentException("Invalid date format. Please use yyyy-MM.", e);
-        }
-        workExperience.setDescription(workExperienceInput.getDescription());
-        if (workExperienceInput.getSkillIds() != null) {
-            Set<Skill> skills = new HashSet<>(skillRepository.findAllById(workExperienceInput.getSkillIds()));
-            workExperience.setSkills(skills);
-        }
-        return workExperienceRepository.save(workExperience);
     }
 
     @Transactional
