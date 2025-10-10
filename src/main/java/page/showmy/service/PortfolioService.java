@@ -23,16 +23,18 @@ public class PortfolioService {
     private final PublicationRepository publicationRepository;
     private final WorkExperienceRepository workExperienceRepository;
     private final SkillRepository skillRepository;
+    private final SkillsCategoryRepository skillsCategoryRepository;
 
     @Autowired
     private RedisService redisService;
 
-    public PortfolioService(UserRepository userRepository, ProjectRepository projectRepository, PublicationRepository publicationRepository, SkillRepository skillRepository, WorkExperienceRepository workExperienceRepository) {
+    public PortfolioService(UserRepository userRepository, ProjectRepository projectRepository, PublicationRepository publicationRepository, SkillRepository skillRepository, WorkExperienceRepository workExperienceRepository, SkillsCategoryRepository skillsCategoryRepository) {
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
         this.publicationRepository = publicationRepository;
         this.workExperienceRepository = workExperienceRepository;
         this.skillRepository = skillRepository;
+        this.skillsCategoryRepository = skillsCategoryRepository;
     }
 
     @Transactional(readOnly = true)
@@ -75,6 +77,14 @@ public class PortfolioService {
 
         return portfolioFromDb;
 
+    }
+
+    @Transactional(readOnly = true)
+    public List<SkillsCategoryDTO> getAllSkills() {
+        List<SkillsCategory> categories = skillsCategoryRepository.findAll();
+        return categories.stream()
+                .map(SkillsCategoryDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

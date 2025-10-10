@@ -35,6 +35,11 @@ public class PortfolioController {
     }
 
     @QueryMapping
+    public List<SkillsCategoryDTO> allSkills() {
+        return portfolioService.getAllSkills();
+    }
+
+    @QueryMapping
     public UserProfileDTO user(@Argument String username) {
         return portfolioService.getUserProfileByUsername(username);
     }
