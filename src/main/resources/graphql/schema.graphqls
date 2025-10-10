@@ -30,6 +30,7 @@ input UserProfileInput{
     profilePhoto: String
     github: String
     linkedin: String
+    gAnalytics: String
 }
 
 input ProjectInput{
@@ -77,6 +78,7 @@ type UserProfile{
     profilePhoto: String
     github: String
     linkedin: String
+    gAnalytics: String
 }
 
 type Project {

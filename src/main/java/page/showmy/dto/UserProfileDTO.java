@@ -20,6 +20,7 @@ public class UserProfileDTO {
     private String profilePhoto;
     private String github;
     private String linkedin;
+    private String gAnalytics;
 
     public static UserProfileDTO fromEntities(User user, UserProfile userProfile) {
         if (userProfile == null) {
@@ -28,6 +29,7 @@ public class UserProfileDTO {
                     null,
                     null,
                     user.getEmail(), 
+                    null,
                     null,
                     null,
                     null,
@@ -43,7 +45,8 @@ public class UserProfileDTO {
                 userProfile.getResumeUrl(),
                 userProfile.getProfilePhoto(),
                 userProfile.getGithub(),
-                userProfile.getLinkedin()
+                userProfile.getLinkedin(),
+                userProfile.getGAnalytics()
         );
     }
 }

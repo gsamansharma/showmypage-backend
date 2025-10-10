@@ -39,4 +39,6 @@ public class UserProfile {
 
     @Column(nullable = false)
     private String resumeUrl;
+
+    private String gAnalytics;
 }
