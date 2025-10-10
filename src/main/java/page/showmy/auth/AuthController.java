@@ -209,6 +209,77 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("available",true));
     }
 
+    @PostMapping("/change-username")
+    public ResponseEntity<?> changeUsername(@RequestBody Map<String, String> payload, Principal principal){
+        String newUsername = payload.get("newUsername");
+        if(newUsername == null || newUsername.isBlank() || newUsername.length() < 3 || newUsername.length() > 20){
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid username provided. Must be between 3 and 20 characters. "));
+        }
+
+        if( userRepository.findByUsername(newUsername).isPresent()){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Username is already taken!"));
+        }
+
+        String currentUsername = principal.getName();
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("User not found" + currentUsername));
+
+        user.setUsername(newUsername);
+        userRepository.save(user);
+
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(newUsername);
+        final String jwt = jwtUtil.generateToken(userDetails);
+
+        return ResponseEntity.ok(Map.of("message", "Username successfully changed!", "token", jwt));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> payload, Principal principal){
+        String newPassword = payload.get("newPassword");
+        if (newPassword == null || newPassword.length() < 6 || newPassword.length() > 20) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Password must be between 6 and 20 characters."));
+        }
+
+        String currentUsername = principal.getName();
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("User not found: " + currentUsername));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Map.of("message", "Password changed successfully."));
+    }
+
+    @PostMapping("/change-email")
+    public ResponseEntity<?> changeEmail(@RequestBody Map<String, String> payload, Principal principal){
+        String newEmail = payload.get("newEmail");
+        if (newEmail == null || !newEmail.contains("@")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "A valid email address is required."));
+        }
+
+        if (userRepository.findByEmail(newEmail).isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is already in use!"));
+        }
+
+        String currentUsername = principal.getName();
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("User not found: " + currentUsername));
+
+        user.setEmail(newEmail);
+        user.setIsEmailVerified(false);
+
+        String verificationToken = jwtUtil.generateResetToken(user.getUsername());
+        Date expirationDate = jwtUtil.extractExpiration(verificationToken);
+        user.setResetToken(verificationToken);
+        user.setResetTokenExpiryDate(expirationDate);
+
+        userRepository.save(user);
+
+        emailService.sendVerificationEmail(user.getEmail(), verificationToken);
+
+        return ResponseEntity.ok(Map.of("message", "Email changed successfully. Please check your new email address to verify it."));
+    }
+
     @PostMapping("/oauth/initiate")
     public ResponseEntity<?> initiateOAuthRegistration(@RequestParam String username, HttpServletRequest request) {
         if (userRepository.findByUsername(username).isPresent()) {
@@ -226,4 +297,6 @@ public class AuthController {
         String token = jwtUtil.generateToken(userDetails);
         return ResponseEntity.ok(Map.of("token", token));
     }
+
+
 }
