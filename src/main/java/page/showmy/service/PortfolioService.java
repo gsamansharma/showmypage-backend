@@ -106,10 +106,12 @@ public class PortfolioService {
 
         if (profileInput.getName() != null) profile.setName(profileInput.getName());
         if (profileInput.getTitle() != null) profile.setTitle(profileInput.getTitle());
+        if (profileInput.getSeo()!= null) profile.setSeo(profileInput.getSeo());
         if (profileInput.getResumeUrl() != null) profile.setResumeUrl(profileInput.getResumeUrl());
         if (profileInput.getProfilePhoto() != null) profile.setProfilePhoto(profileInput.getProfilePhoto());
         if (profileInput.getGithub() != null) profile.setGithub(profileInput.getGithub());
         if (profileInput.getLinkedin() != null) profile.setLinkedin(profileInput.getLinkedin());
+        if (profileInput.getGAnalytics() != null) profile.setGAnalytics(profileInput.getGAnalytics());
 
         userRepository.save(user);
         return UserProfileDTO.fromEntities(user, profile);

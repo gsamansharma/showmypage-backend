@@ -13,6 +13,7 @@ public class UserProfileInputDTO {
     @NotBlank
     private String title;
 
+    private String seo;
     @NotBlank
     @URL(message = "Resume url must a valid url")
     private String resumeUrl;
@@ -28,4 +29,6 @@ public class UserProfileInputDTO {
     @NotBlank
     @URL(message = "Linkedin account must be a valid url")
     private String linkedin;
+
+    private String gAnalytics;
 }
