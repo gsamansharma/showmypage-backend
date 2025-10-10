@@ -26,6 +26,8 @@ public class UserProfile {
     @Column(nullable = false)
     private String title;
 
+    private String seo;
+
     @Column(nullable = false)
     private String github;
 
