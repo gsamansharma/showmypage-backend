@@ -1,6 +1,5 @@
 package page.showmy.service;
 
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,9 +50,18 @@ public class PortfolioService {
                 .orElseThrow(()-> new RuntimeException("User not found: "+username));
         UserProfileDTO userProfileDTO = UserProfileDTO.fromEntities(user, user.getUserProfile());
 
-        Hibernate.initialize(user.getPublications());
-        List<Project> projects = user.getProjects();
-        projects.forEach(project -> project.getSkills().size());
+        List<ProjectDTO> projectDTOs = user.getProjects().stream()
+                .map(ProjectDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        List<PublicationDTO> publicationDTOs = user.getPublications().stream()
+                .map(PublicationDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        List<WorkExperienceDTO> workExperienceDTOs = user.getWorkExperiences().stream()
+                .map(WorkExperienceDTO::fromEntity)
+                .collect(Collectors.toList());
+
         Map<SkillsCategory, List<Skill>> skillsByCategory = user.getSkills().stream()
                 .collect(Collectors.groupingBy(Skill::getSkillsCategory));
 
@@ -67,10 +75,10 @@ public class PortfolioService {
 
         PortfolioDTO portfolioFromDb = new PortfolioDTO(
                 userProfileDTO,
-                new ArrayList<>(user.getProjects()),
+                projectDTOs,
                 skillsDataDTO,
-                new ArrayList<>(user.getPublications()),
-                new ArrayList<>(user.getWorkExperiences())
+                publicationDTOs,
+                workExperienceDTOs
         );
 
         redisService.set(username, portfolioFromDb, 1800L);
