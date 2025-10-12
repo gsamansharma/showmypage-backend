@@ -1,12 +1,17 @@
 package page.showmy.model;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString(exclude = {"skillscategory", "projects", "workexperiences"})
+@EqualsAndHashCode(exclude ={"skillsCategory", "projects", "workExperiences"} )
 @Entity
 public class Skill {
     @Id
@@ -17,9 +22,9 @@ public class Skill {
     private String name;
     private String icon;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "skills_category_id",nullable = false)
-    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "skills_category_id")
+    @JsonBackReference
     private SkillsCategory skillsCategory;
 
     @ManyToMany(mappedBy = "skills")

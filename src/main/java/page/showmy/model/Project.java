@@ -1,16 +1,16 @@
 package page.showmy.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @ToString(exclude={"skills", "user"})
 @EqualsAndHashCode(exclude = {"skills","user"})
@@ -43,8 +43,8 @@ public class Project {
     )
     private Set<Skill> skills = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="user_id", nullable = false)
-    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="user_id")
+    @JsonBackReference
     private User user;
 }

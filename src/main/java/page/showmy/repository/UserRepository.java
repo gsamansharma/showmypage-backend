@@ -1,10 +1,12 @@
 package page.showmy.repository;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import page.showmy.model.User;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+    @EntityGraph(value = "user-with-all-details")
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
 }

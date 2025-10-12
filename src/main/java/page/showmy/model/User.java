@@ -1,5 +1,6 @@
 package page.showmy.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,6 +13,36 @@ import java.util.*;
 @Table(name = "users")
 @ToString(exclude = {"userProfile","projects", "publications", "skills", "workExperiences"})
 @EqualsAndHashCode(exclude = {"userProfile", "projects", "publications", "skills", "workExperiences"})
+@NamedEntityGraph(
+        name = "user-with-all-details",
+        attributeNodes = {
+                @NamedAttributeNode("userProfile"),
+                @NamedAttributeNode(value = "projects", subgraph = "project-skills"),
+                @NamedAttributeNode(value = "skills", subgraph = "skill-category"),
+                @NamedAttributeNode("publications"),
+                @NamedAttributeNode(value = "workExperiences", subgraph = "work-experience-skills") // Apply the subgraph here
+        },
+        subgraphs = {
+                @NamedSubgraph(
+                        name = "project-skills",
+                        attributeNodes = {
+                                @NamedAttributeNode("skills")
+                        }
+                ),
+                @NamedSubgraph(
+                        name = "skill-category",
+                        attributeNodes = {
+                                @NamedAttributeNode("skillsCategory") // Corrected from "skillsCategory" to "skillsCategory"
+                        }
+                ),
+                @NamedSubgraph(
+                        name = "work-experience-skills",
+                        attributeNodes = {
+                                @NamedAttributeNode("skills")
+                        }
+                )
+        }
+)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,19 +69,23 @@ public class User {
     @Column(nullable = false)
     private AuthProvider authProvider;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private UserProfile userProfile;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<Project> projects = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<Project> projects = new HashSet<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<Publication> publications = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<Publication> publications = new HashSet<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<WorkExperience> workExperiences = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<WorkExperience> workExperiences = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "user_skills",
             joinColumns = @JoinColumn(name = "user_id"),

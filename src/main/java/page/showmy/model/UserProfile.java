@@ -1,6 +1,6 @@
 package page.showmy.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,9 +15,8 @@ public class UserProfile {
     private Long userId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
     @JoinColumn(name = "user_id")
-    @JsonIgnore
+    @JsonBackReference
     private User user;
 
     @Column(nullable = false)

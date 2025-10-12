@@ -1,6 +1,6 @@
 package page.showmy.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -18,7 +18,7 @@ public class Publication {
     private String url;
 
     @ManyToOne(fetch= FetchType.EAGER)
-    @JoinColumn(name="user_id", nullable=false)
-    @JsonIgnore
+    @JoinColumn(name="user_id")
+    @JsonBackReference
     private User user;
 }
