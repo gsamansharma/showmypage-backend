@@ -21,6 +21,7 @@ type Mutation {
     deleteWorkExperience(experienceId: ID!): Boolean
 
     updateUserSkills(skillIds:[ID!]!): [Skill]
+    updateUserTopSkills(skillIds: [ID!]!): [Skill]
 }
 
 input UserProfileInput{
@@ -68,6 +69,7 @@ type Portfolio {
     skillsData: [SkillCategory]
     publicationsData: [Publication]
     workExperienceData: [WorkExperience]
+    topSkills: [Skill]
 }
 
 type UserProfile{

@@ -11,8 +11,8 @@ import java.util.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
-@ToString(exclude = {"userProfile","projects", "publications", "skills", "workExperiences"})
-@EqualsAndHashCode(exclude = {"userProfile", "projects", "publications", "skills", "workExperiences"})
+@ToString(exclude = {"userProfile","projects", "publications", "skills", "workExperiences","topSkills"})
+@EqualsAndHashCode(exclude = {"userProfile", "projects", "publications", "skills", "workExperiences","topSkills"})
 @NamedEntityGraph(
         name = "user-with-all-details",
         attributeNodes = {
@@ -20,7 +20,7 @@ import java.util.*;
                 @NamedAttributeNode(value = "projects", subgraph = "project-skills"),
                 @NamedAttributeNode(value = "skills", subgraph = "skill-category"),
                 @NamedAttributeNode("publications"),
-                @NamedAttributeNode(value = "workExperiences", subgraph = "work-experience-skills") // Apply the subgraph here
+                @NamedAttributeNode(value = "workExperiences", subgraph = "work-experience-skills")
         },
         subgraphs = {
                 @NamedSubgraph(
@@ -32,7 +32,7 @@ import java.util.*;
                 @NamedSubgraph(
                         name = "skill-category",
                         attributeNodes = {
-                                @NamedAttributeNode("skillsCategory") // Corrected from "skillsCategory" to "skillsCategory"
+                                @NamedAttributeNode("skillsCategory")
                         }
                 ),
                 @NamedSubgraph(
@@ -92,6 +92,13 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "skill_id")
     )
     private Set<Skill> skills =  new HashSet<>();
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "user_top_skills",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "skill_id"))
+    private Set<Skill> topSkills = new HashSet<>();
 
     public void addProject(Project project) {
         this.projects.add(project);

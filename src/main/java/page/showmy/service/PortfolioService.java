@@ -73,12 +73,17 @@ public class PortfolioService {
                 ))
                 .collect(Collectors.toList());
 
+        List<SkillDTO> topSkillsDTOs = user.getTopSkills().stream()
+                .map(SkillDTO::fromEntity)
+                .collect(Collectors.toList());
+
         PortfolioDTO portfolioFromDb = new PortfolioDTO(
                 userProfileDTO,
                 projectDTOs,
                 skillsDataDTO,
                 publicationDTOs,
-                workExperienceDTOs
+                workExperienceDTOs,
+                topSkillsDTOs
         );
 
         redisService.set(username, portfolioFromDb, 1800L);
@@ -362,5 +367,22 @@ public class PortfolioService {
         userRepository.save(user);
 
         return user.getSkills();
+    }
+
+    @Transactional
+    public Set<Skill> updateUserTopSkills(String username, List<Long> skillIds) {
+        if (skillIds.size() > 5) {
+            throw new IllegalArgumentException("You can select a maximum of 5 top skills.");
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+
+        Set<Skill> skills = new HashSet<>(skillRepository.findAllById(skillIds));
+
+        user.setTopSkills(new HashSet<>(skills));
+        userRepository.save(user);
+
+        return user.getTopSkills();
     }
 }

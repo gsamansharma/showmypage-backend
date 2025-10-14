@@ -15,4 +15,5 @@ public class PortfolioDTO {
     private List<SkillsCategoryDTO> skillsData;
     private List<PublicationDTO> publicationsData;
     private List<WorkExperienceDTO> workExperienceData;
+    private List<SkillDTO> topSkills;
 }

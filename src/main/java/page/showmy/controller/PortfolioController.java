@@ -109,4 +109,10 @@ public class PortfolioController {
         String username = principal.getName();
         return portfolioService.deleteWorkExperience(experienceId, username);
     }
+
+    @MutationMapping
+    public Set<Skill> updateUserTopSkills(@Argument List<Long> skillIds, Principal principal){
+        String username = principal.getName();
+        return portfolioService.updateUserTopSkills(username, skillIds);
+    }
 }

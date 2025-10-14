@@ -77,6 +77,19 @@ CREATE TABLE IF NOT EXISTS user_skills (
     );
 
 
+-- CREATE TABLE statement for the 'user_top_skills' table
+
+CREATE TABLE user_top_skills (
+    user_id BIGINT NOT NULL,
+    skill_id BIGINT NOT NULL,
+
+    -- Constraints
+    PRIMARY KEY (user_id, skill_id),
+    CONSTRAINT fk_user_top_skills_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_user_top_skills_skill FOREIGN KEY (skill_id) REFERENCES skill(id) ON DELETE CASCADE
+);
+
+
 -- CREATE TABLE statement for the 'project' table
 
 CREATE TABLE IF NOT EXISTS project (
