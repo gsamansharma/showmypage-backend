@@ -35,4 +35,8 @@ public class RedisService {
             throw new RuntimeException(e);
         }
     }
+
+    public void delete(String key) {
+        redisTemplate.delete(key);
+    }
 }

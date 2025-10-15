@@ -137,6 +137,7 @@ public class PortfolioService {
         if (profileInput.getGAnalytics() != null) profile.setGAnalytics(profileInput.getGAnalytics());
 
         userRepository.save(user);
+        redisService.delete(username);
         return UserProfileDTO.fromEntities(user, profile);
     }
 
@@ -149,6 +150,7 @@ public class PortfolioService {
         user.addProject(project);
         updateProjectEntity(project, projectInput);
 
+        redisService.delete(username);
         return projectRepository.save(project);
     }
 
@@ -167,7 +169,7 @@ public class PortfolioService {
         }
 
         updateProjectEntity(project, projectInput);
-
+        redisService.delete(username);
         return projectRepository.save(project);
     }
 
@@ -211,6 +213,7 @@ public class PortfolioService {
         }
 
         user.getProjects().remove(project);
+        redisService.delete(username);
         return true;
     }
 
@@ -223,7 +226,7 @@ public class PortfolioService {
         user.addPublication(publication);
 
         updatePublicationEntity(publication, publicationInput);
-
+        redisService.delete(username);
         return publicationRepository.save(publication);
     }
 
@@ -246,7 +249,7 @@ public class PortfolioService {
         }
 
         updatePublicationEntity(publication, publicationInput);
-
+        redisService.delete(username);
         return publicationRepository.save(publication);
     }
 
@@ -272,7 +275,7 @@ public class PortfolioService {
         if (!publication.getUser().getId().equals(user.getId())) {
             throw new SecurityException("You are not authorized to delete this publication.");
         }
-
+        redisService.delete(username);
         user.getPublications().remove(publication);
         return true;
     }
@@ -288,7 +291,7 @@ public class PortfolioService {
         user.addWorkExperience(workExperience);
 
         updateWorkExperienceEntity(workExperience, workExperienceInput);
-
+        redisService.delete(username);
         return workExperienceRepository.save(workExperience);
     }
 
@@ -304,7 +307,7 @@ public class PortfolioService {
         }
 
         updateWorkExperienceEntity(workExperience, workExperienceInput);
-
+        redisService.delete(username);
         return workExperienceRepository.save(workExperience);
     }
 
@@ -351,7 +354,7 @@ public class PortfolioService {
         if(!workExperience.getUser().getId().equals(user.getId())) {
             throw new SecurityException("You are not authorized to delete this work experience.");
         }
-
+        redisService.delete(username);
         user.getWorkExperiences().remove(workExperience);
         return true;
     }
@@ -364,7 +367,7 @@ public class PortfolioService {
         Set<Skill> newSkills = new HashSet<>(skillRepository.findAllById(skillIds));
         user.setSkills(newSkills);
         userRepository.save(user);
-
+        redisService.delete(username);
         return user.getSkills();
     }
 
@@ -381,7 +384,7 @@ public class PortfolioService {
 
         user.setTopSkills(new HashSet<>(skills));
         userRepository.save(user);
-
+        redisService.delete(username);
         return user.getTopSkills();
     }
 }
