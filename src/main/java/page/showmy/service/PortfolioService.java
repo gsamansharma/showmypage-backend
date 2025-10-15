@@ -146,8 +146,7 @@ public class PortfolioService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
         Project project = new Project();
-        project.setUser(user);
-
+        user.addProject(project);
         updateProjectEntity(project, projectInput);
 
         return projectRepository.save(project);
@@ -221,7 +220,7 @@ public class PortfolioService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
         Publication publication = new Publication();
-        publication.setUser(user);
+        user.addPublication(publication);
 
         updatePublicationEntity(publication, publicationInput);
 
@@ -286,7 +285,7 @@ public class PortfolioService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         WorkExperience workExperience = new WorkExperience();
-        workExperience.setUser(user);
+        user.addWorkExperience(workExperience);
 
         updateWorkExperienceEntity(workExperience, workExperienceInput);
 
