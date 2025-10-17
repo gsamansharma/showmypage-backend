@@ -49,7 +49,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/graphql", "/graphiql", "/login/**","/oauth2/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/health", "/graphql", "/graphiql", "/login/**","/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
