@@ -195,6 +195,10 @@ public class AuthController {
 
     @GetMapping("/check-username")
     public ResponseEntity<?> checkUsername(@RequestParam String username) {
+        if (!username.matches("^[a-zA-Z0-9_]+$")) {
+            return ResponseEntity.ok(Map.of("available", false));
+        }
+
         if(userRepository.findByUsername(username).isPresent()) {
             return ResponseEntity.ok(Map.of("available",false));
         }
@@ -214,6 +218,10 @@ public class AuthController {
         String newUsername = payload.get("newUsername");
         if(newUsername == null || newUsername.isBlank() || newUsername.length() < 3 || newUsername.length() > 20){
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid username provided. Must be between 3 and 20 characters. "));
+        }
+
+        if (!newUsername.matches("^[a-zA-Z0-9_]+$")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Username can only contain letters, numbers, and underscores"));
         }
 
         if( userRepository.findByUsername(newUsername).isPresent()){
