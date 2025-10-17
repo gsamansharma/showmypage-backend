@@ -19,9 +19,11 @@ import page.showmy.security.UserDetailsServiceImpl;
 import page.showmy.service.EmailService;
 
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,6 +36,11 @@ public class AuthController {
     private final UserDetailsServiceImpl userDetailsService;
     private final EmailService emailService;
 
+    private static final List<String> RESERVED_USERNAMES = Arrays.asList(
+            "studio", "api", "admin", "root", "support", "blog", "docs",
+            "status", "mail", "ftp", "www", "user", "portfolio"
+    );
+
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, EmailService emailService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
@@ -45,6 +52,10 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody SignupRequest signupRequest) {
+        if (RESERVED_USERNAMES.contains(signupRequest.getUsername().toLowerCase())) {
+            return ResponseEntity.badRequest().body("Error: This username is reserved.");
+        }
+
         if (userRepository.findByUsername(signupRequest.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Error: Username is already taken!");
         }
@@ -195,6 +206,10 @@ public class AuthController {
 
     @GetMapping("/check-username")
     public ResponseEntity<?> checkUsername(@RequestParam String username) {
+        if (RESERVED_USERNAMES.contains(username.toLowerCase())) {
+            return ResponseEntity.ok(Map.of("available", false, "message", "This username is reserved."));
+        }
+
         if (!username.matches("^[a-zA-Z0-9_]+$")) {
             return ResponseEntity.ok(Map.of("available", false));
         }
@@ -218,6 +233,10 @@ public class AuthController {
         String newUsername = payload.get("newUsername");
         if(newUsername == null || newUsername.isBlank() || newUsername.length() < 3 || newUsername.length() > 20){
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid username provided. Must be between 3 and 20 characters. "));
+        }
+
+        if (RESERVED_USERNAMES.contains(newUsername.toLowerCase())) {
+            return ResponseEntity.ok(Map.of("available", false, "message", "This username is reserved."));
         }
 
         if (!newUsername.matches("^[a-zA-Z0-9_]+$")) {
