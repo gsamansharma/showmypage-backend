@@ -56,11 +56,11 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Error: This username is reserved.");
         }
 
-        if (userRepository.findByUsername(signupRequest.getUsername()).isPresent()) {
+        if (userRepository.findByUsernameIgnoreCase(signupRequest.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Error: Username is already taken!");
         }
 
-        if (userRepository.findByEmail(signupRequest.getEmail()).isPresent()) {
+        if (userRepository.findByEmailIgnoreCase(signupRequest.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Error: Email is already in use!");
         }
 
@@ -135,7 +135,7 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
-        Optional<User> userOptional = userRepository.findByEmail(forgotPasswordRequest.getEmail());
+        Optional<User> userOptional = userRepository.findByEmailIgnoreCase(forgotPasswordRequest.getEmail());
 
         if(userOptional.isEmpty())
             return ResponseEntity.ok(Map.of("message", "If an account with that email exists, a password reset link has been sent."));
@@ -214,7 +214,7 @@ public class AuthController {
             return ResponseEntity.ok(Map.of("available", false));
         }
 
-        if(userRepository.findByUsername(username).isPresent()) {
+        if(userRepository.findByUsernameIgnoreCase(username).isPresent()) {
             return ResponseEntity.ok(Map.of("available",false));
         }
         return ResponseEntity.ok(Map.of("available",true));
@@ -222,7 +222,7 @@ public class AuthController {
 
     @GetMapping("/check-email")
     public ResponseEntity<?> checkEmail(@RequestParam String email) {
-        if(userRepository.findByEmail(email).isPresent()){
+        if(userRepository.findByEmailIgnoreCase(email).isPresent()){
             return ResponseEntity.ok(Map.of("available",false));
         }
         return ResponseEntity.ok(Map.of("available",true));
@@ -243,7 +243,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "Username can only contain letters, numbers, and underscores"));
         }
 
-        if( userRepository.findByUsername(newUsername).isPresent()){
+        if( userRepository.findByUsernameIgnoreCase(newUsername).isPresent()){
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Username is already taken!"));
         }
 
@@ -284,7 +284,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "A valid email address is required."));
         }
 
-        if (userRepository.findByEmail(newEmail).isPresent()) {
+        if (userRepository.findByEmailIgnoreCase(newEmail).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Email is already in use!"));
         }
 
@@ -309,7 +309,7 @@ public class AuthController {
 
     @PostMapping("/oauth/initiate")
     public ResponseEntity<?> initiateOAuthRegistration(@RequestParam String username, HttpServletRequest request) {
-        if (userRepository.findByUsername(username).isPresent()) {
+        if (userRepository.findByUsernameIgnoreCase(username).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Username is already taken!"));
         }
         request.getSession().setAttribute("OAUTH2_USERNAME", username);

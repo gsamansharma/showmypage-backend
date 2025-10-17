@@ -38,7 +38,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             throw new OAuth2AuthenticationException("Email not found from " + registrationId + ". Please ensure your account has a valid email.");
         }
 
-        Optional<User> userOptional = userRepository.findByEmail(email);
+        Optional<User> userOptional = userRepository.findByEmailIgnoreCase(email);
         if (userOptional.isPresent()) {
             return oAuth2User;
         }
@@ -66,7 +66,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String baseUsername = email.substring(0, email.indexOf("@"));
         String username = baseUsername;
         int counter = 1;
-        while (userRepository.findByUsername(username).isPresent()) {
+        while (userRepository.findByUsernameIgnoreCase(username).isPresent()) {
             username = baseUsername + counter;
             counter++;
         }
