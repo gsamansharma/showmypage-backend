@@ -15,6 +15,7 @@ public class UserProfile {
     private Long userId;
 
     @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
