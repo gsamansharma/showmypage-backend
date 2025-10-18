@@ -73,6 +73,7 @@ type Portfolio {
 }
 
 type UserProfile{
+    username: String
     name: String
     title: String
     seo: String

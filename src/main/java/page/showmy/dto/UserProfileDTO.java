@@ -11,6 +11,7 @@ import page.showmy.model.UserProfile;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserProfileDTO {
+    private String username;
     private String name;
     private String title;
     @Size(max = 255, message = "SEO cannot exceed 255 characters")
@@ -25,6 +26,7 @@ public class UserProfileDTO {
     public static UserProfileDTO fromEntities(User user, UserProfile userProfile) {
         if (userProfile == null) {
             return new UserProfileDTO(
+                    user.getUsername(),
                     null,
                     null,
                     null,
@@ -38,6 +40,7 @@ public class UserProfileDTO {
         }
 
         return new UserProfileDTO(
+                user.getUsername(),
                 userProfile.getName(),
                 userProfile.getTitle(),
                 userProfile.getSeo(),
