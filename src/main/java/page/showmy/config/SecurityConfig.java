@@ -25,6 +25,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import page.showmy.auth.CustomOAuth2UserService;
 import page.showmy.auth.GitHubEmailEnricher;
+import page.showmy.auth.HttpCookieOAuth2AuthorizationRequestRepository;
 import page.showmy.auth.OAuth2LoginSuccessHandler;
 import page.showmy.security.JwtRequestFilter;
 
@@ -37,11 +38,13 @@ public class SecurityConfig {
     private final JwtRequestFilter jwtRequestFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
-    public SecurityConfig(JwtRequestFilter jwtRequestFilter, CustomOAuth2UserService customOAuth2UserService, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+    public SecurityConfig(JwtRequestFilter jwtRequestFilter, CustomOAuth2UserService customOAuth2UserService, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler, HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository) {
         this.jwtRequestFilter = jwtRequestFilter;
         this.customOAuth2UserService = customOAuth2UserService;
         this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+        this.httpCookieOAuth2AuthorizationRequestRepository = httpCookieOAuth2AuthorizationRequestRepository;
 
     }
 
@@ -68,11 +71,23 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/graphql","/graphiql").access(internalOnly)
-                        .requestMatchers("/api/auth/**", "/api/health", "/login/**","/oauth2/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/oauth2/**", "/login/**", "/api/health").permitAll()
+                        .requestMatchers("/graphql", "/graphiql").access((authentication, context) -> {
+                            String remoteAddr = context.getRequest().getRemoteAddr();
+                            boolean isInternal = remoteAddr.equals("127.0.0.1") || remoteAddr.equals("::1") ||
+                                    remoteAddr.startsWith("172.") || remoteAddr.startsWith("192.168.") || remoteAddr.startsWith("10.");
+                            return new org.springframework.security.authorization.AuthorizationDecision(isInternal);
+                        })
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
+                                .authorizationEndpoint(endpoint -> endpoint
+                                    .baseUri("/oauth2/authorize")
+                                    .authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository)
+                        )
+                        .redirectionEndpoint(endpoint -> endpoint
+                                .baseUri("/login/oauth2/code/*")
+                        )
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oauth2UserService())
                         )
@@ -97,7 +112,7 @@ public class SecurityConfig {
             else {
                 oAuth2User = googleUserService.loadUser(request);
             }
-                return customOAuth2UserService.processOAuthUser(oAuth2User, registrationId);
+                return customOAuth2UserService.processOAuthUser(oAuth2User, request, registrationId);
 
         };
     }

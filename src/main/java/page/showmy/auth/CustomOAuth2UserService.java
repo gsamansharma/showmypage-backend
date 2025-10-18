@@ -11,6 +11,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import page.showmy.model.AuthProvider;
 import page.showmy.model.User;
 import page.showmy.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Optional;
 
@@ -27,11 +28,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
-        return processOAuthUser(oAuth2User, registrationId);
+        return processOAuthUser(oAuth2User, userRequest, registrationId);
     }
 
 
-    public OAuth2User processOAuthUser(OAuth2User oAuth2User, String registrationId) {
+    public OAuth2User processOAuthUser(OAuth2User oAuth2User, OAuth2UserRequest userRequest, String registrationId) {
         String email = oAuth2User.getAttribute("email");
 
         if (email == null) {
@@ -44,12 +45,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-        System.out.println(attr.getRequest());
-        HttpSession session = attr.getRequest().getSession(false);
-        String username = (String) session.getAttribute("OAUTH2_USERNAME");
-        System.out.println(username);
-        if (username == null) {
+        HttpServletRequest request = attr.getRequest();
+        String username = userRequest.getAdditionalParameters().get("username").toString();
+        if (username == null || username.isBlank()) {
             username = generateUniqueUsernameFromEmail(email);
+        } else {
+            if (userRepository.findByUsernameIgnoreCase(username).isPresent()) {
+                username = generateUniqueUsernameFromEmail(email);
+            }
         }
         User newUser = new User();
         newUser.setEmail(email);
