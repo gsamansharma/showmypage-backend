@@ -68,8 +68,8 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/graphql","/graphiql").access(internalOnly)
-                        .requestMatchers("/api/auth/**", "/api/health", "/login/**","/oauth2/**").permitAll()
+                        .requestMatchers("/graphql","/graphiql", "/api/auth/**").access(internalOnly)
+                        .requestMatchers("/api/health", "/login/**", "/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
