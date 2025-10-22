@@ -20,24 +20,18 @@ public class UserProfile {
     @JsonBackReference
     private User user;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private String title;
 
     private String seo;
 
-    @Column(nullable = false)
     private String github;
 
-    @Column(nullable = false)
     private String linkedin;
 
-    @Column(nullable = false)
     private String profilePhoto;
 
-    @Column(nullable = false)
     private String resumeUrl;
 
     private String gAnalytics;
