@@ -1,5 +1,6 @@
 package page.showmy.security;
 
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,6 +25,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         .orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + usernameOrEmail)));
 
         String password = user.getPassword() != null ? user.getPassword() : "";
+        if (!user.getIsEmailVerified()) {
+            throw new DisabledException("User account is not yet verified. Please check your email.");
+        }
         return new org.springframework.security.core.userdetails.User(user.getUsername(), password, new ArrayList<>());
     }
 }

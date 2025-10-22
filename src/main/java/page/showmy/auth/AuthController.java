@@ -38,7 +38,7 @@ public class AuthController {
 
     private static final List<String> RESERVED_USERNAMES = Arrays.asList(
             "studio", "api", "admin", "root", "support", "blog", "docs",
-            "status", "mail", "ftp", "www", "user", "portfolio"
+            "status", "mail", "ftp", "www", "user", "portfolio", "traefik"
     );
 
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, EmailService emailService) {
@@ -72,8 +72,8 @@ public class AuthController {
 
         String verificationToken = jwtUtil.generateResetToken(user.getUsername());
         Date expirationDate = jwtUtil.extractExpiration(verificationToken);
-        user.setResetToken(verificationToken);
-        user.setResetTokenExpiryDate(expirationDate);
+        user.setVerificationToken(verificationToken);
+        user.setVerificationTokenExpiryDate(expirationDate);
         user.setIsEmailVerified(false);
         userRepository.save(user);
         emailService.sendVerificationEmail(user.getEmail(), verificationToken);
@@ -122,12 +122,12 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Email is already verified!"));
         }
 
-        if(user.getResetToken() == null || !user.getResetToken().equals(verifyEmailRequest.getToken())){
+        if(user.getVerificationToken() == null || !user.getVerificationToken().equals(verifyEmailRequest.getToken())){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid or previously used verification token"));
         }
         user.setIsEmailVerified(true);
-        user.setResetToken(null);
-        user.setResetTokenExpiryDate(null);
+        user.setVerificationToken(null);
+        user.setVerificationTokenExpiryDate(null);
         userRepository.save(user);
 
         return ResponseEntity.ok(Map.of("message", "Email successfully verified."));

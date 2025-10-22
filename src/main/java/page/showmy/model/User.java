@@ -58,6 +58,12 @@ public class User {
     private String password;
 
     @Column(unique = true)
+    private String verificationToken;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date verificationTokenExpiryDate;
+
+    @Column(unique = true)
     private String resetToken;
 
     @Temporal(TemporalType.TIMESTAMP)
