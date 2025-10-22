@@ -20,7 +20,8 @@ import java.util.*;
                 @NamedAttributeNode(value = "projects", subgraph = "project-skills"),
                 @NamedAttributeNode(value = "skills", subgraph = "skill-category"),
                 @NamedAttributeNode("publications"),
-                @NamedAttributeNode(value = "workExperiences", subgraph = "work-experience-skills")
+                @NamedAttributeNode(value = "workExperiences", subgraph = "work-experience-skills"),
+                @NamedAttributeNode(value = "topSkills")
         },
         subgraphs = {
                 @NamedSubgraph(

@@ -3,8 +3,7 @@ package page.showmy.dto;
 import lombok.Data;
 import page.showmy.model.Project;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,7 +16,7 @@ public class ProjectDTO {
     private String liveUrl;
     private String githubUrl;
     private String videoUrl;
-    private List<String> imageUrls;
+    private Set<String> imageUrls;
     private Set<SkillDTO> skills;
 
     public static ProjectDTO fromEntity(Project project) {
@@ -29,7 +28,7 @@ public class ProjectDTO {
         dto.setLiveUrl(project.getLiveUrl());
         dto.setGithubUrl(project.getGithubUrl());
         dto.setVideoUrl(project.getVideoUrl());
-        dto.setImageUrls(new ArrayList<>(project.getImageUrls()));
+        dto.setImageUrls(new HashSet<>(project.getImageUrls()));
         dto.setSkills(project.getSkills().stream()
                 .map(SkillDTO::fromEntity)
                 .collect(Collectors.toSet()));

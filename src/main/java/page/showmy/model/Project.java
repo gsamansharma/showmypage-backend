@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -30,10 +29,10 @@ public class Project {
     private String githubUrl;
     private String videoUrl;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "project_images", joinColumns = @JoinColumn(name = "project_id"))
     @Column(name = "image_url")
-    private List<String> imageUrls;
+    private Set<String> imageUrls = new HashSet<>();
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     @JoinTable(

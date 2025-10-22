@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -29,6 +29,6 @@ public class ProjectInputDTO {
     @URL(message = "Video URL must be a valid URL")
     private String videoUrl;
 
-    private List<String> imageUrls;
+    private Set<String> imageUrls = new HashSet<>();
     private Set<Long> skillIds;
 }
