@@ -63,7 +63,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private String generateUniqueUsernameFromEmail(String email) {
-        String baseUsername = email.substring(0, email.indexOf("@"));
+        String baseUsername = email.substring(0, email.indexOf("@")).replaceAll("[^a-zA-Z0-9]", "");
         String username = baseUsername;
         int counter = 1;
         while (userRepository.findByUsernameIgnoreCase(username).isPresent()) {
