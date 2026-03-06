@@ -1,0 +1,15 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!target/*.jar
+*~
+*.swp
+*.class
+
+# IDE and specific files
+.idea/
+.vscode/
+*.iml
+.env*
+Dockerfile
+.dockerignore
+.git/
