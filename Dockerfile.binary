@@ -1,0 +1,15 @@
+FROM ubuntu:22.04
+
+WORKDIR /app
+
+# Copy the pre-compiled native binary from the host target folder
+COPY target/showmypage-api /app/showmypage-api
+
+# Ensure the binary is executable
+RUN chmod +x /app/showmypage-api
+
+# Expose the application port
+EXPOSE 8080
+
+# Run the native executable
+ENTRYPOINT ["/app/showmypage-api"]
