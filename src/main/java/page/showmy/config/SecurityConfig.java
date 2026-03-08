@@ -46,7 +46,7 @@ public class SecurityConfig {
     }
 
     @Value("${frontend.url}")
-    private String frontendUrl;
+    private List<String> frontendUrls;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -90,11 +90,10 @@ public class SecurityConfig {
         DefaultOAuth2UserService googleUserService = new DefaultOAuth2UserService();
         return request -> {
             String registrationId = request.getClientRegistration().getRegistrationId();
-            OAuth2User oAuth2User;
+            OAuth2User oAuth2User = null;
             if ("github".equalsIgnoreCase(registrationId)) {
                 oAuth2User = gitHubEmailEnricher.loadUser(request);
-            }
-            else {
+            } else if ("google".equalsIgnoreCase(registrationId)) {
                 oAuth2User = googleUserService.loadUser(request);
             }
                 return customOAuth2UserService.processOAuthUser(oAuth2User, registrationId);
@@ -105,7 +104,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(frontendUrl));
+        configuration.setAllowedOrigins(frontendUrls);
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
