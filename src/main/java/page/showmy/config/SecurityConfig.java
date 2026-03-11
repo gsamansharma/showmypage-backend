@@ -19,13 +19,13 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import page.showmy.auth.CustomOAuth2UserService;
 import page.showmy.auth.GitHubEmailEnricher;
 import page.showmy.auth.OAuth2LoginSuccessHandler;
+import page.showmy.security.ApiKeyAuthFilter;
 import page.showmy.security.JwtRequestFilter;
 
 import java.util.List;
@@ -37,53 +37,61 @@ public class SecurityConfig {
     private final JwtRequestFilter jwtRequestFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final ApiKeyAuthFilter apiKeyAuthFilter;
 
-    public SecurityConfig(JwtRequestFilter jwtRequestFilter, CustomOAuth2UserService customOAuth2UserService, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+    public SecurityConfig(JwtRequestFilter jwtRequestFilter, CustomOAuth2UserService customOAuth2UserService,
+            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler, ApiKeyAuthFilter apiKeyAuthFilter) {
         this.jwtRequestFilter = jwtRequestFilter;
         this.customOAuth2UserService = customOAuth2UserService;
         this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
-
+        this.apiKeyAuthFilter = apiKeyAuthFilter;
     }
 
     @Value("${frontend.url}")
     private List<String> frontendUrls;
 
+    @Value("${backend.api.secret}")
+    private String backendApiSecret;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        AuthorizationManager<RequestAuthorizationContext> internalOnly = (authentication, context) -> {
-            IpAddressMatcher dockerRange1 = new IpAddressMatcher("172.16.0.0/12");
-            IpAddressMatcher dockerRange2 = new IpAddressMatcher("192.168.0.0/16");
-            IpAddressMatcher localhost = new IpAddressMatcher("127.0.0.1");
-            IpAddressMatcher localhostV6 = new IpAddressMatcher("::1");
+        AuthorizationManager<RequestAuthorizationContext> secretRequired = (authentication, context) -> {
+            String secret = context.getRequest().getHeader("X-Forwarded-Secret");
+            boolean isValid = backendApiSecret != null && backendApiSecret.equals(secret);
+            return new AuthorizationDecision(isValid);
+        };
 
-            boolean isInternal = localhost.matches(context.getRequest()) ||
-                    localhostV6.matches(context.getRequest()) ||
-                    dockerRange1.matches(context.getRequest()) ||
-                    dockerRange2.matches(context.getRequest());
-
-            return new AuthorizationDecision(isInternal);
+        AuthorizationManager<RequestAuthorizationContext> secretOrUser = (authentication, context) -> {
+            String secret = context.getRequest().getHeader("X-Forwarded-Secret");
+            boolean hasSecret = backendApiSecret != null && backendApiSecret.equals(secret);
+            boolean hasUser = authentication.get() != null && authentication.get().isAuthenticated();
+            return new AuthorizationDecision(hasSecret || hasUser);
         };
 
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/graphql","/graphiql", "/api/auth/**").access(internalOnly)
+                        .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/check-username",
+                                "/api/auth/check-email")
+                        .permitAll()
+                        .requestMatchers("/api/auth/validate").authenticated()
+                        .requestMatchers("/graphql", "/graphiql").access(secretRequired)
+                        .requestMatchers("/api/auth/**").access(secretOrUser)
                         .requestMatchers("/api/health", "/login/**", "/oauth2/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userService(oauth2UserService())
-                        )
-                        .successHandler(oAuth2LoginSuccessHandler)
-                )
+                                .userService(oauth2UserService()))
+                        .successHandler(oAuth2LoginSuccessHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
 
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(apiKeyAuthFilter, JwtRequestFilter.class);
 
         return http.build();
     }
+
     @Bean
     public OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService() {
         GitHubEmailEnricher gitHubEmailEnricher = new GitHubEmailEnricher();
@@ -96,7 +104,7 @@ public class SecurityConfig {
             } else if ("google".equalsIgnoreCase(registrationId)) {
                 oAuth2User = googleUserService.loadUser(request);
             }
-                return customOAuth2UserService.processOAuthUser(oAuth2User, registrationId);
+            return customOAuth2UserService.processOAuthUser(oAuth2User, registrationId);
 
         };
     }
@@ -105,7 +113,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(frontendUrls);
-        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
@@ -120,7 +128,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 }
