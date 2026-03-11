@@ -18,12 +18,12 @@ import java.io.IOException;
 @Component
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtUtil jwtUtil;
-    private final String frontendUrl;
+    private final String studioUrl;
     private final UserDetailsServiceImpl userDetailsService;
 
-    public OAuth2LoginSuccessHandler(JwtUtil jwtUtil, @Value("${frontend.url}") String frontendUrl, UserDetailsServiceImpl userDetailsService) {
+    public OAuth2LoginSuccessHandler(JwtUtil jwtUtil, @Value("${studio.url}") String studioUrl, UserDetailsServiceImpl userDetailsService) {
         this.jwtUtil = jwtUtil;
-        this.frontendUrl = frontendUrl;
+        this.studioUrl = studioUrl;
         this.userDetailsService = userDetailsService;
     }
 
@@ -33,6 +33,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String email = oAuth2User.getAttribute("email");
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         String token = jwtUtil.generateToken(userDetails);
-        response.sendRedirect(frontendUrl + "/login/success?token=" + token);
+        response.sendRedirect(studioUrl + "/login/success?token=" + token);
     }
 }

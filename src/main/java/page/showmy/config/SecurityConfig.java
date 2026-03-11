@@ -48,7 +48,10 @@ public class SecurityConfig {
     }
 
     @Value("${frontend.url}")
-    private List<String> frontendUrls;
+    private String frontendUrl;
+
+    @Value("${studio.url}")
+    private String studioUrl;
 
     @Value("${backend.api.secret}")
     private String backendApiSecret;
@@ -112,7 +115,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(frontendUrls);
+        List<String> allAllowedOrigins = new java.util.ArrayList<>();
+        if (frontendUrl != null && !frontendUrl.isBlank()) {
+            allAllowedOrigins.add(frontendUrl);
+        }
+        if (studioUrl != null && !studioUrl.isBlank()) {
+            allAllowedOrigins.add(studioUrl);
+        }
+        configuration.setAllowedOrigins(allAllowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
