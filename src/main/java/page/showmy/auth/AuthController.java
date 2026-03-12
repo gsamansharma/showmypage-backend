@@ -40,7 +40,7 @@ public class AuthController {
 
     private static final List<String> RESERVED_USERNAMES = Arrays.asList(
             "studio", "api", "admin", "root", "support", "blog", "docs",
-            "status", "mail", "ftp", "www", "user", "portfolio", "traefik"
+            "status", "mail", "ftp", "www", "user", "portfolio", "traefik", "images"
     );
 
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, EmailService emailService) {
