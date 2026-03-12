@@ -12,9 +12,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
@@ -22,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import page.showmy.auth.CustomAuthorizationRequestResolver;
 import page.showmy.auth.CustomOAuth2UserService;
 import page.showmy.auth.GitHubEmailEnricher;
 import page.showmy.auth.OAuth2LoginSuccessHandler;
@@ -38,13 +41,16 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     private final ApiKeyAuthFilter apiKeyAuthFilter;
+    private final ClientRegistrationRepository clientRegistrationRepository;
 
     public SecurityConfig(JwtRequestFilter jwtRequestFilter, CustomOAuth2UserService customOAuth2UserService,
-            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler, ApiKeyAuthFilter apiKeyAuthFilter) {
+            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler, ApiKeyAuthFilter apiKeyAuthFilter,
+            ClientRegistrationRepository clientRegistrationRepository) {
         this.jwtRequestFilter = jwtRequestFilter;
         this.customOAuth2UserService = customOAuth2UserService;
         this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
         this.apiKeyAuthFilter = apiKeyAuthFilter;
+        this.clientRegistrationRepository = clientRegistrationRepository;
     }
 
     @Value("${frontend.url}")
@@ -84,6 +90,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/health", "/login/**", "/oauth2/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(authorization -> authorization
+                                .authorizationRequestResolver(authorizationRequestResolver()))
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oauth2UserService()))
                         .successHandler(oAuth2LoginSuccessHandler))
@@ -93,6 +101,11 @@ public class SecurityConfig {
         http.addFilterAfter(apiKeyAuthFilter, JwtRequestFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public OAuth2AuthorizationRequestResolver authorizationRequestResolver() {
+        return new CustomAuthorizationRequestResolver(clientRegistrationRepository);
     }
 
     @Bean
