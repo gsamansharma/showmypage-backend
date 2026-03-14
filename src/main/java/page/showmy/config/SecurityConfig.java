@@ -90,6 +90,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/health", "/login/**", "/oauth2/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
+                        .loginPage(studioUrl + "/login")
                         .authorizationEndpoint(authorization -> authorization
                                 .authorizationRequestResolver(authorizationRequestResolver()))
                         .userInfoEndpoint(userInfo -> userInfo
