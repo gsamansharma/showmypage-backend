@@ -37,19 +37,21 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
     private final EmailService emailService;
+    private final page.showmy.security.CookieUtil cookieUtil;
 
     private static final List<String> RESERVED_USERNAMES = Arrays.asList(
             "studio", "api", "admin", "root", "support", "blog", "docs",
             "status", "mail", "ftp", "www", "user", "portfolio", "traefik", "images"
     );
 
-    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, EmailService emailService) {
+    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, EmailService emailService, page.showmy.security.CookieUtil cookieUtil) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.emailService = emailService;
+        this.cookieUtil = cookieUtil;
     }
 
     @PostMapping("/signup")
@@ -238,7 +240,8 @@ public class AuthController {
     }
 
     @PostMapping("/change-username")
-    public ResponseEntity<?> changeUsername(@RequestBody Map<String, String> payload, Principal principal){
+    public ResponseEntity<?> changeUsername(@RequestBody Map<String, String> payload, Principal principal,
+            jakarta.servlet.http.HttpServletResponse response) {
         String newUsername = payload.get("newUsername");
         if(newUsername == null || newUsername.isBlank() || newUsername.length() < 3 || newUsername.length() > 20){
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid username provided. Must be between 3 and 20 characters. "));
@@ -266,6 +269,7 @@ public class AuthController {
         final UserDetails userDetails = userDetailsService.loadUserByUsername(newUsername);
         final String jwt = jwtUtil.generateToken(userDetails);
 
+        cookieUtil.addJwtCookie(response, jwt);
         return ResponseEntity.ok(Map.of("message", "Username successfully changed!", "token", jwt));
     }
 

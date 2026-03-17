@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import page.showmy.security.CookieUtil;
 import page.showmy.security.JwtUtil;
 import page.showmy.security.UserDetailsServiceImpl;
 
@@ -20,19 +21,25 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtUtil jwtUtil;
     private final String studioUrl;
     private final UserDetailsServiceImpl userDetailsService;
+    private final CookieUtil cookieUtil;
 
-    public OAuth2LoginSuccessHandler(JwtUtil jwtUtil, @Value("${studio.url}") String studioUrl, UserDetailsServiceImpl userDetailsService) {
+    public OAuth2LoginSuccessHandler(JwtUtil jwtUtil, @Value("${studio.url}") String studioUrl,
+            UserDetailsServiceImpl userDetailsService, CookieUtil cookieUtil) {
         this.jwtUtil = jwtUtil;
         this.studioUrl = studioUrl;
         this.userDetailsService = userDetailsService;
+        this.cookieUtil = cookieUtil;
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException{
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         String token = jwtUtil.generateToken(userDetails);
-        response.sendRedirect(studioUrl + "/login/success?token=" + token);
+
+        cookieUtil.addJwtCookie(response, token);
+        response.sendRedirect(studioUrl + "/login/success");
     }
 }
