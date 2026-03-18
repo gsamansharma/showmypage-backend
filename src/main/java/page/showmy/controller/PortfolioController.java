@@ -44,6 +44,15 @@ public class PortfolioController {
         return portfolioService.getUserProfileByUsername(username);
     }
 
+    @QueryMapping
+    public UserProfileDTO me(Principal principal) {
+        if (principal == null) {
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized");
+        }
+        String username = principal.getName();
+        return portfolioService.getUserProfileByUsername(username);
+    }
+
     @MutationMapping
     public UserProfileDTO updateUserProfile(@Argument UserProfileInputDTO profileInput, Principal principal) {
         String username = principal.getName();

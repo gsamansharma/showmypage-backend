@@ -1,27 +1,30 @@
+directive @Auth on FIELD_DEFINITION
+
 type Query {
     portfolio(username: String!): Portfolio
     users: [UserProfile]
     user(username:String!): UserProfile
     allSkills: [SkillCategory]
+    me: UserProfile @Auth
 }
 
 type Mutation {
-    updateUserProfile(profileInput: UserProfileInput!): UserProfile
+    updateUserProfile(profileInput: UserProfileInput!): UserProfile @Auth
 
-    addProject(projectInput: ProjectInput!): Project
-    updateProject(projectId: ID!, projectInput: ProjectInput!): Project
-    deleteProject(projectId: ID!): Boolean
+    addProject(projectInput: ProjectInput!): Project @Auth
+    updateProject(projectId: ID!, projectInput: ProjectInput!): Project @Auth
+    deleteProject(projectId: ID!): Boolean @Auth
 
-    addPublication(publicationInput: PublicationInput!): Publication
-    updatePublication(publicationId: ID!, publicationInput: PublicationInput!): Publication
-    deletePublication(publicationId: ID!): Boolean
+    addPublication(publicationInput: PublicationInput!): Publication @Auth
+    updatePublication(publicationId: ID!, publicationInput: PublicationInput!): Publication @Auth
+    deletePublication(publicationId: ID!): Boolean @Auth
 
-    addWorkExperience(workExperienceInput: WorkExperienceInput!): WorkExperience
-    updateWorkExperience(experienceId: ID!, workExperienceInput: WorkExperienceInput!): WorkExperience
-    deleteWorkExperience(experienceId: ID!): Boolean
+    addWorkExperience(workExperienceInput: WorkExperienceInput!): WorkExperience @Auth
+    updateWorkExperience(experienceId: ID!, workExperienceInput: WorkExperienceInput!): WorkExperience @Auth
+    deleteWorkExperience(experienceId: ID!): Boolean @Auth
 
-    updateUserSkills(skillIds:[ID!]!): [Skill]
-    updateUserTopSkills(skillIds: [ID!]!): [Skill]
+    updateUserSkills(skillIds:[ID!]!): [Skill] @Auth
+    updateUserTopSkills(skillIds: [ID!]!): [Skill] @Auth
 }
 
 input UserProfileInput{
